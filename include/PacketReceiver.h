@@ -3,6 +3,7 @@
 
 #define CIRCULAR_BUFFER_INT_SAFE
 
+#include <functional>
 #include <RF24.h>
 #include <CircularBuffer.h>
 #include "PacketCRC.h"
@@ -22,8 +23,8 @@ public:
     void loop();
     void read();
 
-    void setPacketCallback(void (*callback)(const uint8_t *buffer));
-    void setInvalidPacketCallback(void (*callback)(const uint8_t *buffer));
+    void setPacketCallback(std::function<void(const uint8_t*)> callback);
+    void setInvalidPacketCallback(std::function<void(const uint8_t*)> callback);
 
 private:
     RF24 *radio;
@@ -34,8 +35,8 @@ private:
     CircularBuffer<uint8_t*, EMPTY_BUFFER_COUNT> freeBuffers;
     CircularBuffer<uint8_t*, VALID_BUFFER_COUNT> receivedBuffers;
 
-    void (*packetCallback)(const uint8_t *buffer);
-    void (*invalidPacketCallback)(const uint8_t *buffer);
+    std::function<void(const uint8_t*)> packetCallback;
+    std::function<void(const uint8_t*)> invalidPacketCallback;
 
     bool isSanePacket(uint8_t *buffer);
     bool isValidPacket(uint8_t *buffer);

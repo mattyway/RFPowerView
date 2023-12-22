@@ -1,6 +1,6 @@
 #include "PacketReceiver.h"
 
-PacketReceiver::PacketReceiver(RF24 *radio) : radio(radio), packetCallback(nullptr), invalidPacketCallback(nullptr) {
+PacketReceiver::PacketReceiver(RF24 *radio) : radio(radio) {
     for (int i = 0; i < TOTAL_BUFFER_COUNT; i++) {
         if (!freeBuffers.isFull()) {
             freeBuffers.push(buffers[i]);
@@ -69,11 +69,11 @@ void PacketReceiver::read() {
   }
 }
 
-void PacketReceiver::setPacketCallback(void (*callback)(const uint8_t *buffer)) {
+void PacketReceiver::setPacketCallback(std::function<void(const uint8_t*)> callback) {
   this->packetCallback = callback;
 }
 
-void PacketReceiver::setInvalidPacketCallback(void (*callback)(const uint8_t *buffer))
+void PacketReceiver::setInvalidPacketCallback(std::function<void(const uint8_t*)> callback)
 {
   this->invalidPacketCallback = callback;
 }

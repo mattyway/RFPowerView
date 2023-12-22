@@ -8,33 +8,33 @@ PacketParser::~PacketParser()
 {
 }
 
-bool PacketParser::parsePacket(const uint8_t *buffer, Packet& message)
+bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
 {
-    message.source = (uint16_t)(buffer[14] << 8 | buffer[15]);
-    message.destination = (uint16_t)(buffer[12] << 8 | buffer[13]);
+    packet.source = (uint16_t)(buffer[14] << 8 | buffer[15]);
+    packet.destination = (uint16_t)(buffer[12] << 8 | buffer[13]);
 
     if (buffer[16] == 0x52 && buffer[17] == 0x53) {
-        message.type = PacketType::STOP;
-        message.parameters = std::monostate{};
+        packet.type = PacketType::STOP;
+        packet.parameters = std::monostate{};
     } else if (buffer[16] == 0x52 && buffer[17] == 0x44) {
-        message.type = PacketType::CLOSE;
-        message.parameters = std::monostate{};
+        packet.type = PacketType::CLOSE;
+        packet.parameters = std::monostate{};
     } else if (buffer[16] == 0x52 && buffer[17] == 0x55) {
-        message.type = PacketType::OPEN;
-        message.parameters = std::monostate{};
+        packet.type = PacketType::OPEN;
+        packet.parameters = std::monostate{};
     } else if (buffer[16] == 0x21 && buffer[17] == 0x5A) { 
-        message.type = PacketType::FIELDS;
+        packet.type = PacketType::FIELDS;
         std::vector<Field> fields;
         parseFields(buffer, fields);
-        message.parameters = FieldsParameters{fields};
+        packet.parameters = FieldsParameters{fields};
     } else if (buffer[16] == 0x3F && buffer[17] == 0x5A) {
-        message.type = PacketType::FIELD_COMMAND;
+        packet.type = PacketType::FIELD_COMMAND;
         std::vector<Field> fields;
         parseFields(buffer, fields);
-        message.parameters = FieldsParameters{fields};
+        packet.parameters = FieldsParameters{fields};
     } else {
-        message.type = PacketType::UNKNOWN;
-        message.parameters = std::monostate{};
+        packet.type = PacketType::UNKNOWN;
+        packet.parameters = std::monostate{};
         return false;
     }
 
