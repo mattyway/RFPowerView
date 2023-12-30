@@ -5,15 +5,16 @@ RFPowerView::RFPowerView(uint8_t cePin, uint8_t csPin, uint8_t irqPin, uint16_t 
     radio(cePin, csPin),
     packetReceiver(&radio),
     irqPin(irqPin),
-    rfID{static_cast<uint8_t>(rfID & 0xFF), static_cast<uint8_t>(rfID >> 8)} {}
+    rfID{static_cast<uint8_t>(rfID & 0xFF), static_cast<uint8_t>(rfID >> 8)},
+    packetCallback(nullptr) {}
 
 bool RFPowerView::begin() {
     if (!radio.begin()) {
         return false;
     }
 
-    packetReceiver.setPacketCallback([this](const uint8_t* buffer) { this->processPacketBuffer(buffer); });
-    packetReceiver.setInvalidPacketCallback([this](const uint8_t* buffer) { this->processInvalidPacketBuffer(buffer); });
+    packetReceiver.setBufferCallback([this](const uint8_t* buffer) { this->processBuffer(buffer); });
+    packetReceiver.setInvalidBufferCallback([this](const uint8_t* buffer) { this->processInvalidBuffer(buffer); });
 
     startListening();
 
@@ -48,16 +49,20 @@ void RFPowerView::interruptHandler() {
     packetReceiver.read(); 
 }
 
-void RFPowerView::processPacketBuffer(const uint8_t *buffer) {
+void RFPowerView::processBuffer(const uint8_t *buffer) {
     Packet packet;
     bool result = packetParser.parsePacket(buffer, packet);
     if (result) {
-        Serial.print("Parsed packet! ");
-        Serial.print((int)packet.type);
-        Serial.println();
+        if (packetCallback != nullptr) {
+            packetCallback(&packet);
+        }
     }
 }
 
-void RFPowerView::processInvalidPacketBuffer(const uint8_t *buffer) {
+void RFPowerView::processInvalidBuffer(const uint8_t *buffer) {
     
+}
+
+void RFPowerView::setPacketCallback(std::function<void(const Packet*)> callback) {
+    packetCallback = callback;
 }

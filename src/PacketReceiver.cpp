@@ -18,20 +18,20 @@ void PacketReceiver::loop() {
     while (!pendingBuffers.isEmpty()) {
         uint8_t *p = pendingBuffers.pop();
 
-        bool isSanePacket = this->isSanePacket(p);
-        bool isValidPacket = this->isValidPacket(p);
-        bool isNewPacket = this->isNewPacket(p);
+        bool isSaneBuffer = this->isSaneBuffer(p);
+        bool isValidBuffer = this->isValidBuffer(p);
+        bool isNewBuffer = this->isNewBuffer(p);
 
         // TODO: We don't keep old invalid packets around, so invalid packets will always be new for now
-        if (isSanePacket && !isValidPacket && isNewPacket) {
-          if (invalidPacketCallback != nullptr) {
-            invalidPacketCallback(p);
+        if (isSaneBuffer && !isValidBuffer && isNewBuffer) {
+          if (invalidBufferCallback != nullptr) {
+            invalidBufferCallback(p);
           }
         }
 
-        if (isValidPacket && isNewPacket) {
-          if (packetCallback != nullptr) {
-            this->packetCallback(p);
+        if (isValidBuffer && isNewBuffer) {
+          if (bufferCallback != nullptr) {
+            this->bufferCallback(p);
           }
 
             // If there is no space to store this new packet, return the oldest packet
@@ -69,16 +69,16 @@ void PacketReceiver::read() {
   }
 }
 
-void PacketReceiver::setPacketCallback(std::function<void(const uint8_t*)> callback) {
-  this->packetCallback = callback;
+void PacketReceiver::setBufferCallback(std::function<void(const uint8_t*)> callback) {
+  this->bufferCallback = callback;
 }
 
-void PacketReceiver::setInvalidPacketCallback(std::function<void(const uint8_t*)> callback)
+void PacketReceiver::setInvalidBufferCallback(std::function<void(const uint8_t*)> callback)
 {
-  this->invalidPacketCallback = callback;
+  this->invalidBufferCallback = callback;
 }
 
-bool PacketReceiver::isSanePacket(uint8_t *buffer) {
+bool PacketReceiver::isSaneBuffer(uint8_t *buffer) {
   // Sanity check that the buffer isn't just filled with noise
   // First byte contains a header
   // Second byte contains the packet length which cannot be larger than 28 bytes (32 bytes - 1 header byte - 1 length byte - 2 CRC bytes)
@@ -88,8 +88,8 @@ bool PacketReceiver::isSanePacket(uint8_t *buffer) {
   return false;
 }
 
-bool PacketReceiver::isValidPacket(uint8_t *buffer) {
-  if (isSanePacket(buffer)) {
+bool PacketReceiver::isValidBuffer(uint8_t *buffer) {
+  if (isSaneBuffer(buffer)) {
       if (packetCRC.check(buffer)) {
           return true;
       }
@@ -97,16 +97,16 @@ bool PacketReceiver::isValidPacket(uint8_t *buffer) {
   return false;
 }
 
-bool PacketReceiver::isNewPacket(uint8_t *buffer) {
+bool PacketReceiver::isNewBuffer(uint8_t *buffer) {
   for (int i = 0; i < receivedBuffers.size(); i++) {
-    if (isEquivalentPacket(buffer, receivedBuffers[i])) {
+    if (isEquivalentBuffer(buffer, receivedBuffers[i])) {
       return false;
     }
   }
   return true;
 }
 
-bool PacketReceiver::isEquivalentPacket(uint8_t *a, uint8_t *b) {
+bool PacketReceiver::isEquivalentBuffer(uint8_t *a, uint8_t *b) {
   // Check length byte
   if (a[1] != b[1]) {
     return false;

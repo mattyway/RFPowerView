@@ -22,6 +22,9 @@ public:
     bool begin();
     void loop();
     void startListening();
+
+    void setPacketCallback(std::function<void(const Packet*)> callback);
+
 private:
     RF24 radio;
     PacketReceiver packetReceiver;
@@ -29,10 +32,12 @@ private:
     uint8_t irqPin;
     uint8_t rfID[2];
 
+    std::function<void(const Packet*)> packetCallback;
+
     void interruptHandler();
 
-    void processPacketBuffer(const uint8_t *buffer);
-    void processInvalidPacketBuffer(const uint8_t *buffer);
+    void processBuffer(const uint8_t *buffer);
+    void processInvalidBuffer(const uint8_t *buffer);
 };
 
 #endif // RFPOWERVIEW_H
