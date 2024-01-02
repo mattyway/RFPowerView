@@ -24,7 +24,7 @@ public:
     void loop();
 
     void setPacketCallback(std::function<void(const Packet*)> callback);
-    void sendPacket(const Packet* packet);
+    bool sendPacket(const Packet* packet);
 
 private:
     RF24 radio;
