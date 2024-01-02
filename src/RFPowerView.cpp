@@ -4,7 +4,7 @@
 RFPowerView::RFPowerView(uint8_t cePin, uint8_t csPin, uint8_t irqPin, uint16_t rfID) :
     radio(cePin, csPin),
     packetReceiver(&radio),
-    bufferFiller(0x3D, 0x96, 0x05),
+    bufferFiller(0x05),
     irqPin(irqPin),
     rfID{static_cast<uint8_t>(rfID & 0xFF), static_cast<uint8_t>(rfID >> 8)},
     packetCallback(nullptr) {}

@@ -1,8 +1,6 @@
 #include "BufferFiller.h"
 
-BufferFiller::BufferFiller(uint8_t rollingCode1, uint8_t rollingCode2, uint8_t protocolVersion) : 
-    rollingCode1(rollingCode1),
-    rollingCode2(rollingCode2),
+BufferFiller::BufferFiller(uint8_t protocolVersion) : 
     protocolVersion(protocolVersion)
 {
 }
@@ -58,10 +56,8 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       return false;
   }
 
-  setRollingCodes(buffer);
+  setRollingCodes(buffer, packet->rollingCode1, packet->rollingCode2);
   calculateCRC(buffer);
-
-  incrementRollingCodes();
 
   return true;
 }
@@ -133,7 +129,7 @@ void BufferFiller::setDestinationAddress(uint8_t *buffer, uint16_t targetID) {
   buffer[13] = (uint8_t)(targetID & 0x00FF);
 }
 
-void BufferFiller::setRollingCodes(uint8_t *buffer) {
+void BufferFiller::setRollingCodes(uint8_t *buffer, uint8_t rollingCode1, uint8_t rollingCode2) {
   buffer[4] = rollingCode1;  // Rolling code 1
   buffer[11] = rollingCode2; // Rolling code 2
 }
@@ -151,11 +147,6 @@ void BufferFiller::calculateCRC(uint8_t *buffer) { // must be called after the b
 
   buffer[length + 2] = checksum1; // Checksum
   buffer[length + 3] = checksum2; // Checksum
-}
-
-void BufferFiller::incrementRollingCodes() {
-  rollingCode1++;
-  rollingCode2++;
 }
 
 uint8_t BufferFiller::calculateTotalFieldSize(const FieldsParameters& parameters) {
