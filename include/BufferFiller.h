@@ -25,11 +25,11 @@ private:
     void setDestinationAddress(uint8_t *buffer, uint16_t);
     void setRollingCodes(uint8_t *buffer);
     void setProtocolVersion(uint8_t *buffer, uint8_t);
-    void setOpenPacketData(uint8_t *buffer);
-    void setClosePacketData(uint8_t *buffer);
-    void setStopPacketData(uint8_t *buffer);
+    void setFieldsData(uint8_t *buffer, const FieldsParameters& parameters);
     void calculateCRC(uint8_t *buffer);
     void incrementRollingCodes();
+    uint8_t calculateTotalFieldSize(const FieldsParameters& parameters);
+    uint8_t calculateFieldSize(const Field& field);
 };
 
 #endif // BUFFERFILLER_H

@@ -12,19 +12,6 @@ BufferFiller::~BufferFiller()
 }
 
 bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
-  uint8_t packetSize = 0;
-  switch(packet->type) {
-    case PacketType::STOP:
-    case PacketType::OPEN:
-    case PacketType::CLOSE:
-      packetSize = 0x11;
-      break;
-    // TODO: Calculate fields length in buffer
-    default:
-      return false;
-  }
-
-  setPacketSize(buffer, packetSize);
   setConstants(buffer);
   setProtocolVersion(buffer, protocolVersion);
   setSourceAddress(buffer, packet->source);
@@ -32,14 +19,41 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
 
   switch(packet->type) {
     case PacketType::STOP:
-      setStopPacketData(buffer);
+      setPacketSize(buffer, 0x11);
+      buffer[16] = 0x52;
+      buffer[17] = 0x53;
+      buffer[18] = 0x00;
       break;
     case PacketType::CLOSE:
-      setClosePacketData(buffer);
+      setPacketSize(buffer, 0x11);
+      buffer[16] = 0x52;
+      buffer[17] = 0x44;
+      buffer[18] = 0x00;
       break;
     case PacketType::OPEN:
-      setOpenPacketData(buffer);
+      setPacketSize(buffer, 0x11);
+      buffer[16] = 0x52;
+      buffer[17] = 0x55;
+      buffer[18] = 0x00;
       break;
+    case PacketType::FIELDS: {
+      FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
+      // 0x10 is the number of bytes without any fields
+      setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
+      buffer[16] = 0x21;
+      buffer[17] = 0x5A;
+      setFieldsData(buffer, parameters);
+      break;
+    }
+    case PacketType::FIELD_COMMAND: {
+      FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
+      // 0x10 is the number of bytes without any fields
+      setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
+      buffer[16] = 0x3F;
+      buffer[17] = 0x5A;
+      setFieldsData(buffer, std::get<FieldsParameters>(packet->parameters));
+      break;
+    }
     default:
       return false;
   }
@@ -52,57 +66,40 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   return true;
 }
 
-void BufferFiller::setOpenPacketData(uint8_t *buffer)
-{
-    buffer[16] = 0x52;
-    buffer[17] = 0x55;
-    buffer[18] = 0x00;
+void BufferFiller::setFieldsData(uint8_t *buffer, const FieldsParameters& parameters) {
+  uint8_t offset = 18;
+
+  for (size_t i = 0; i < parameters.fields.size(); i++) {
+    Field field = parameters.fields[i];
+    uint8_t fieldSize = calculateFieldSize(field);
+    buffer[offset] = fieldSize - 1; // Minus 1 because the length byte isn't counted
+    switch(field.type) {
+      case FieldType::SET:
+        buffer[offset + 1] = 0x40;
+        break;
+      case FieldType::FETCH:
+        buffer[offset + 1] = 0x3F;
+        break;
+      case FieldType::VALUE:
+        buffer[offset + 1] = 0x21;
+        break;
+      default:
+        // TODO: Return false?
+        break;
+    }
+    buffer[offset + 2] = field.identifier;
+    if(field.hasValue) {
+      if (std::holds_alternative<uint8_t>(field.value)) {
+        buffer[offset + 3] = std::get<uint8_t>(field.value);
+      } else if (std::holds_alternative<uint16_t>(field.value)) {
+        uint16_t value = std::get<uint16_t>(field.value);
+        buffer[offset + 3] = (uint8_t)(value & 0x00FF);
+        buffer[offset + 4] = (uint8_t)((value & 0xFF00) >> 8);
+      }
+    }
+    offset += fieldSize;
+  }
 }
-
-void BufferFiller::setClosePacketData(uint8_t *buffer)
-{
-    buffer[16] = 0x52;
-    buffer[17] = 0x44;
-    buffer[18] = 0x00;
-}
-
-
-void BufferFiller::setStopPacketData(uint8_t *buffer)
-{
-    buffer[16] = 0x52;
-    buffer[17] = 0x53;
-    buffer[18] = 0x00;
-}
-
-/*
-void BufferFiller::setPositionCommand(uint8_t *buffer, float percentage)
-{
-    // packetSize = 0x15;
-
-    buffer[16] = 0x3F; // Field command
-    buffer[17] = 0x5A; // Constant
-
-    buffer[18] = 0x04; // Field of 4 bytes
-    buffer[19] = 0x40; // Field type (0x40 is set)
-    buffer[20] = 0x50; // ID of position field
-
-    uint16_t position = (uint16_t)(0xFFFF * percentage);
-
-    buffer[21] = (uint8_t)(position & 0x00FF);
-    buffer[22] = (uint8_t)((position & 0xFF00) >> 8);
-}
-
- void BufferFiller::setFetchPositionCommand(uint8_t *buffer) {
-    // packetSize = 0x13;
-    
-    buffer[16] = 0x3F; // Field command
-    buffer[17] = 0x5A; // Constant
-
-    buffer[18] = 0x02; // Field of 2 bytes
-    buffer[19] = 0x3F; // Field type (0x3F is fetch)
-    buffer[20] = 0x50; // ID of position field
- }
-*/
 
 void BufferFiller::setPacketSize(uint8_t *buffer, uint8_t length) {
   buffer[1] = length;  // Packet size
@@ -159,4 +156,25 @@ void BufferFiller::calculateCRC(uint8_t *buffer) { // must be called after the b
 void BufferFiller::incrementRollingCodes() {
   rollingCode1++;
   rollingCode2++;
+}
+
+uint8_t BufferFiller::calculateTotalFieldSize(const FieldsParameters& parameters) {
+  uint8_t totalSize = 0;
+  for (size_t i = 0; i < parameters.fields.size(); i++) {
+    Field field = parameters.fields[i];
+    totalSize += calculateFieldSize(field);
+  }
+  return totalSize;
+}
+
+uint8_t BufferFiller::calculateFieldSize(const Field& field) {
+  uint8_t fieldSize = 3; // Length byte + field type byte + identifier byte
+  if (field.hasValue) {
+    if (std::holds_alternative<uint8_t>(field.value)) {
+      fieldSize += 1;
+    } else if (std::holds_alternative<uint16_t>(field.value)) {
+      fieldSize += 2;
+    }
+  }
+  return fieldSize;
 }
