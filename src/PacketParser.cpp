@@ -13,6 +13,9 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     packet.source = (uint16_t)(buffer[14] << 8 | buffer[15]);
     packet.destination = (uint16_t)(buffer[12] << 8 | buffer[13]);
 
+    packet.rollingCode1 = buffer[4];
+    packet.rollingCode2 = buffer[11];
+
     if (buffer[16] == 0x52 && buffer[17] == 0x53) {
         packet.type = PacketType::STOP;
         packet.parameters = std::monostate{};

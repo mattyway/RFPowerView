@@ -41,6 +41,8 @@ struct Packet {
   uint16_t destination;
   PacketType type;
   PacketParameters parameters;
+  uint8_t rollingCode1;
+  uint8_t rollingCode2;
 };
 
 
