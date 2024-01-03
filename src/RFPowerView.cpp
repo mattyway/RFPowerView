@@ -49,7 +49,7 @@ void RFPowerView::startListening() {
 void RFPowerView::startTransmitting() {
     radio.stopListening();
 
-    radio.setPALevel(RF24_PA_HIGH, true);
+    radio.setPALevel(RF24_PA_LOW, true);
 
     radio.openWritingPipe(rfID);
     radio.powerUp();
