@@ -7,7 +7,9 @@ RFPowerView::RFPowerView(uint8_t cePin, uint8_t csPin, uint8_t irqPin, uint16_t 
     bufferFiller(0x05),
     irqPin(irqPin),
     rfID{static_cast<uint8_t>(rfID & 0xFF), static_cast<uint8_t>(rfID >> 8)},
-    packetCallback(nullptr) {}
+    packetReceivedCallback(nullptr),
+    validBufferReceivedCallback(nullptr),
+    invalidBufferReceivedCallback(nullptr) {}
 
 bool RFPowerView::begin() {
     if (!radio.begin()) {
@@ -60,21 +62,35 @@ void RFPowerView::interruptHandler() {
 }
 
 void RFPowerView::processBuffer(const uint8_t *buffer) {
+    if (validBufferReceivedCallback != nullptr) {
+        validBufferReceivedCallback(buffer);
+    }
+
     Packet packet;
     bool result = packetParser.parsePacket(buffer, packet);
     if (result) {
-        if (packetCallback != nullptr) {
-            packetCallback(&packet);
+        if (packetReceivedCallback != nullptr) {
+            packetReceivedCallback(&packet);
         }
     }
 }
 
 void RFPowerView::processInvalidBuffer(const uint8_t *buffer) {
-    
+    if (invalidBufferReceivedCallback != nullptr) {
+        invalidBufferReceivedCallback(buffer);
+    }
 }
 
-void RFPowerView::setPacketCallback(std::function<void(const Packet*)> callback) {
-    packetCallback = callback;
+void RFPowerView::setPacketReceivedCallback(std::function<void(const Packet*)> callback) {
+    packetReceivedCallback = callback;
+}
+
+void RFPowerView::setValidBufferReceivedCallback(std::function<void(const uint8_t*)> callback) {
+    validBufferReceivedCallback = callback;
+}
+
+void RFPowerView::setInvalidBufferReceivedCallback(std::function<void(const uint8_t*)> callback) {
+    invalidBufferReceivedCallback = callback;
 }
 
 bool RFPowerView::sendPacket(const Packet* packet) {

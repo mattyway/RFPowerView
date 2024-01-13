@@ -23,7 +23,10 @@ public:
     bool begin();
     void loop();
 
-    void setPacketCallback(std::function<void(const Packet*)> callback);
+    void setPacketReceivedCallback(std::function<void(const Packet*)> callback);
+    void setValidBufferReceivedCallback(std::function<void(const uint8_t*)> callback);
+    void setInvalidBufferReceivedCallback(std::function<void(const uint8_t*)> callback);
+
     bool sendPacket(const Packet* packet);
 
 private:
@@ -34,7 +37,9 @@ private:
     uint8_t irqPin;
     uint8_t rfID[2];
 
-    std::function<void(const Packet*)> packetCallback;
+    std::function<void(const Packet*)> packetReceivedCallback;
+    std::function<void(const uint8_t*)> validBufferReceivedCallback;
+    std::function<void(const uint8_t*)> invalidBufferReceivedCallback;
 
     uint8_t sendBuffer[32];
 
