@@ -57,6 +57,24 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       buffer[dataOffset + 1] = 0x55;
       buffer[dataOffset + 2] = 0x00;
       break;
+    case PacketType::CLOSE_SLOW:
+      setPacketSize(buffer, 0x11);
+      buffer[dataOffset + 0] = 0x52;
+      buffer[dataOffset + 1] = 0x4C;
+      buffer[dataOffset + 2] = 0x00;
+      break;
+    case PacketType::OPEN_SLOW:
+      setPacketSize(buffer, 0x11);
+      buffer[dataOffset + 0] = 0x52;
+      buffer[dataOffset + 1] = 0x52;
+      buffer[dataOffset + 2] = 0x00;
+      break;
+    case PacketType::MOVE_TO_SAVED_POSITION:
+      setPacketSize(buffer, 0x11);
+      buffer[dataOffset + 0] = 0x52;
+      buffer[dataOffset + 1] = 0x48;
+      buffer[dataOffset + 2] = 0x00;
+      break;
     case PacketType::FIELDS: {
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
       // 0x10 is the number of bytes without any fields

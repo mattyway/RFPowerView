@@ -54,6 +54,15 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x55) {
         packet.type = PacketType::OPEN;
         packet.parameters = std::monostate{};
+    } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x4C) {
+        packet.type = PacketType::CLOSE_SLOW;
+        packet.parameters = std::monostate{};
+    } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x52) {
+        packet.type = PacketType::OPEN_SLOW;
+        packet.parameters = std::monostate{};
+    } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x48) {
+        packet.type = PacketType::MOVE_TO_SAVED_POSITION;
+        packet.parameters = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x5A) { 
         packet.type = PacketType::FIELDS;
         std::vector<Field> fields;

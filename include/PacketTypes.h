@@ -9,6 +9,9 @@ enum class PacketType {
   OPEN,
   CLOSE,
   STOP,
+  OPEN_SLOW,
+  CLOSE_SLOW,
+  MOVE_TO_SAVED_POSITION,
   FIELDS,
   FIELD_COMMAND,
   UNKNOWN
