@@ -34,11 +34,25 @@ struct FieldsParameters {
 
 using PacketParameters = std::variant<std::monostate, FieldsParameters>;
 
+struct BroadcastHeader {
+  uint16_t source;
+};
 
-// Define Message structure
-struct Packet {
+struct UnicastHeader {
   uint16_t source;
   uint16_t destination;
+};
+
+struct GroupsHeader {
+  uint16_t source;
+  std::vector<uint8_t> groups;
+};
+
+using PacketHeader = std::variant<BroadcastHeader, UnicastHeader, GroupsHeader>;
+
+// Define Packet structure
+struct Packet {
+  PacketHeader header;  
   PacketType type;
   PacketParameters parameters;
   uint8_t rollingCode1;

@@ -10,27 +10,56 @@ PacketParser::~PacketParser()
 
 bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
 {
-    packet.source = (uint16_t)(buffer[14] << 8 | buffer[15]);
-    packet.destination = (uint16_t)(buffer[12] << 8 | buffer[13]);
+    int dataOffset = -1;
+    if (buffer[10] == 0x04) {
+        BroadcastHeader header{};
+        header.source = (uint16_t)(buffer[12] << 8 | buffer[13]);
+        packet.header = header;
+        dataOffset = 14;
+    } else if(buffer[10] == 0x05) {
+        UnicastHeader header{};
+        header.destination = (uint16_t)(buffer[12] << 8 | buffer[13]);
+        header.source = (uint16_t)(buffer[14] << 8 | buffer[15]);
+        packet.header = header;
+        dataOffset = 16;
+    } else if (buffer[10] == 0x06) {
+        GroupsHeader header{};
+        size_t i = 12;
+        uint8_t length = buffer[1] + 2;
+        while (i < length) {
+            if (buffer[i] == 0x00) {
+                dataOffset = i + 3;
+                break;
+            } else {
+                header.groups.push_back(buffer[i]);
+            }
+            i++;
+        }
+        if (i == length) {
+            return false;
+        }
+        header.source = (uint16_t)(buffer[i + 1] << 8 | buffer[i + 2]);
+        packet.header = header;
+    }
 
     packet.rollingCode1 = buffer[4];
     packet.rollingCode2 = buffer[11];
 
-    if (buffer[16] == 0x52 && buffer[17] == 0x53) {
+    if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x53) {
         packet.type = PacketType::STOP;
         packet.parameters = std::monostate{};
-    } else if (buffer[16] == 0x52 && buffer[17] == 0x44) {
+    } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x44) {
         packet.type = PacketType::CLOSE;
         packet.parameters = std::monostate{};
-    } else if (buffer[16] == 0x52 && buffer[17] == 0x55) {
+    } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x55) {
         packet.type = PacketType::OPEN;
         packet.parameters = std::monostate{};
-    } else if (buffer[16] == 0x21 && buffer[17] == 0x5A) { 
+    } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x5A) { 
         packet.type = PacketType::FIELDS;
         std::vector<Field> fields;
         parseFields(buffer, fields);
         packet.parameters = FieldsParameters{fields};
-    } else if (buffer[16] == 0x3F && buffer[17] == 0x5A) {
+    } else if (buffer[dataOffset + 0] == 0x3F && buffer[dataOffset + 1] == 0x5A) {
         packet.type = PacketType::FIELD_COMMAND;
         std::vector<Field> fields;
         parseFields(buffer, fields);

@@ -19,11 +19,11 @@ private:
 
     void setPacketSize(uint8_t *buffer, uint8_t);
     void setConstants(uint8_t *buffer);
-    void setSourceAddress(uint8_t *buffer, uint16_t);
-    void setDestinationAddress(uint8_t *buffer, uint16_t);
+    void setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t source);
+    void setDestinationAddress(uint8_t *buffer, uint8_t offset, uint16_t destination);
     void setRollingCodes(uint8_t *buffer, uint8_t rollingCode1, uint8_t rollingCode2);
     void setProtocolVersion(uint8_t *buffer, uint8_t);
-    void setFieldsData(uint8_t *buffer, const FieldsParameters& parameters);
+    void setFieldsData(uint8_t *buffer, uint8_t offset, const FieldsParameters& parameters);
     void calculateCRC(uint8_t *buffer);
     void incrementRollingCodes();
     uint8_t calculateTotalFieldSize(const FieldsParameters& parameters);

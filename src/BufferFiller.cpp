@@ -11,45 +11,68 @@ BufferFiller::~BufferFiller()
 
 bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   setConstants(buffer);
-  setProtocolVersion(buffer, protocolVersion);
-  setSourceAddress(buffer, packet->source);
-  setDestinationAddress(buffer, packet->destination);
+
+  int dataOffset = -1;
+
+  if (std::holds_alternative<BroadcastHeader>(packet->header)) {
+    setProtocolVersion(buffer, 0x04);
+    auto header = std::get<BroadcastHeader>(packet->header);
+    setSourceAddress(buffer, 12, header.source);
+    dataOffset = 14;
+  } else if (std::holds_alternative<UnicastHeader>(packet->header)) {
+    setProtocolVersion(buffer, 0x05);
+    auto header = std::get<UnicastHeader>(packet->header);
+    setDestinationAddress(buffer, 12, header.destination);
+    setSourceAddress(buffer, 14, header.source);
+    dataOffset = 16;
+  } else if (std::holds_alternative<GroupsHeader>(packet->header)) {
+    setProtocolVersion(buffer, 0x06);
+    auto header = std::get<GroupsHeader>(packet->header);
+    int groupsOffset = 12;
+    for (size_t i = 0; i < header.groups.size(); i++) {
+      buffer[groupsOffset] = header.groups[i];
+      groupsOffset++;
+    }
+    buffer[groupsOffset] = 0x00;
+    setSourceAddress(buffer, groupsOffset + 1, header.source);
+    dataOffset = groupsOffset + 3;
+  }
 
   switch(packet->type) {
     case PacketType::STOP:
       setPacketSize(buffer, 0x11);
-      buffer[16] = 0x52;
-      buffer[17] = 0x53;
-      buffer[18] = 0x00;
+      buffer[dataOffset + 0] = 0x52;
+      buffer[dataOffset + 1] = 0x53;
+      buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::CLOSE:
       setPacketSize(buffer, 0x11);
-      buffer[16] = 0x52;
-      buffer[17] = 0x44;
-      buffer[18] = 0x00;
+      buffer[dataOffset + 0] = 0x52;
+      buffer[dataOffset + 1] = 0x44;
+      buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::OPEN:
       setPacketSize(buffer, 0x11);
-      buffer[16] = 0x52;
-      buffer[17] = 0x55;
-      buffer[18] = 0x00;
+      buffer[dataOffset + 0] = 0x52;
+      buffer[dataOffset + 1] = 0x55;
+      buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::FIELDS: {
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
       // 0x10 is the number of bytes without any fields
       setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
-      buffer[16] = 0x21;
-      buffer[17] = 0x5A;
-      setFieldsData(buffer, parameters);
+      buffer[dataOffset + 0] = 0x21;
+      buffer[dataOffset + 1] = 0x5A;
+      setFieldsData(buffer, dataOffset + 2, parameters);
       break;
     }
     case PacketType::FIELD_COMMAND: {
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
       // 0x10 is the number of bytes without any fields
       setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
-      buffer[16] = 0x3F;
-      buffer[17] = 0x5A;
-      setFieldsData(buffer, std::get<FieldsParameters>(packet->parameters));
+      buffer[dataOffset + 0] = 0x3F;
+      buffer[dataOffset + 1] = 0x5A;
+      setFieldsData(buffer, dataOffset + 2, parameters);
       break;
     }
     default:
@@ -62,9 +85,7 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   return true;
 }
 
-void BufferFiller::setFieldsData(uint8_t *buffer, const FieldsParameters& parameters) {
-  uint8_t offset = 18;
-
+void BufferFiller::setFieldsData(uint8_t *buffer, uint8_t offset, const FieldsParameters& parameters) {
   for (size_t i = 0; i < parameters.fields.size(); i++) {
     Field field = parameters.fields[i];
     uint8_t fieldSize = calculateFieldSize(field);
@@ -113,20 +134,20 @@ void BufferFiller::setConstants(uint8_t *buffer) {
   buffer[9] = 0x86;  // Constant?
 }
 
-void BufferFiller::setSourceAddress(uint8_t *buffer, uint16_t sourceID) {
+void BufferFiller::setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t sourceID) {
   // Physical source address (could be the address of a repeater when receiving a packet)
   buffer[7] = (uint8_t)((sourceID & 0xFF00) >> 8);
   buffer[8] = (uint8_t)(sourceID & 0x00FF);
 
   // Logical source address (usually the same as the physical source address)
-  buffer[14] = (uint8_t)((sourceID & 0xFF00) >> 8);
-  buffer[15] = (uint8_t)(sourceID & 0x00FF);
+  buffer[offset + 0] = (uint8_t)((sourceID & 0xFF00) >> 8);
+  buffer[offset + 1] = (uint8_t)(sourceID & 0x00FF);
 }
 
-void BufferFiller::setDestinationAddress(uint8_t *buffer, uint16_t targetID) {
+void BufferFiller::setDestinationAddress(uint8_t *buffer, uint8_t offset, uint16_t targetID) {
   // Logical target address
-  buffer[12] = (uint8_t)((targetID & 0xFF00) >> 8);
-  buffer[13] = (uint8_t)(targetID & 0x00FF);
+  buffer[offset + 0] = (uint8_t)((targetID & 0xFF00) >> 8);
+  buffer[offset + 1] = (uint8_t)(targetID & 0x00FF);
 }
 
 void BufferFiller::setRollingCodes(uint8_t *buffer, uint8_t rollingCode1, uint8_t rollingCode2) {
