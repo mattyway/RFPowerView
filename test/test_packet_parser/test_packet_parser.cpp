@@ -44,7 +44,7 @@ void test_parse_open()
   TEST_ASSERT_TRUE(packet.type == PacketType::OPEN);
 }
 
-int runParseUnityTests(void)
+int runUnityTests(void)
 {
   UNITY_BEGIN();
   RUN_TEST(test_parse_stop);
@@ -63,6 +63,6 @@ void setup()
   // establishes connection with a board Serial interface
   delay(2000);
 
-  runParseUnityTests();
+  runUnityTests();
 }
 void loop() {}
