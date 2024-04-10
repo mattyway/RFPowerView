@@ -1,4 +1,5 @@
 #include "PacketParser.h"
+#include <cstddef>
 
 PacketParser::PacketParser()
 {
