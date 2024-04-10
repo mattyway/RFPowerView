@@ -1,7 +1,7 @@
 #ifndef PACKET_PARSER_H
 #define PACKET_PARSER_H
 
-#include <Arduino.h>
+#include <vector>
 #include "PacketTypes.h"
 
 class PacketParser {

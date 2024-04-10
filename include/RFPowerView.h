@@ -1,7 +1,7 @@
 #ifndef RFPOWERVIEW_H
 #define RFPOWERVIEW_H
 
-#include <Arduino.h>
+#include <stdint.h>
 #include <RF24.h>
 #include "PacketReceiver.h"
 #include "PacketParser.h"

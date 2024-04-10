@@ -1,7 +1,7 @@
 #ifndef PACKET_TYPES_H
 #define PACKET_TYPES_H
 
-#include <Arduino.h>
+#include <stdint.h>
 #include <variant>
 
 // Define packet types

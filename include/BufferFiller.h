@@ -1,7 +1,7 @@
 #ifndef BUFFERFILLER_H
 #define BUFFERFILLER_H
 
-#include <Arduino.h>
+#include <stdint.h>
 #include "PacketCRC.h"
 #include "PacketTypes.h"
 
