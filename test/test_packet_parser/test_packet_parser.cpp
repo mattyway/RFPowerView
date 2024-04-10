@@ -2,7 +2,15 @@
 #include <Arduino.h>
 #include "PacketParser.h"
 
-void run_parse_test(const uint8_t *packet_data, Packet& packet)
+void setUp()
+{
+}
+
+void tearDown()
+{
+}
+
+void run_parse_test(const uint8_t *packet_data, Packet &packet)
 {
   PacketParser packetParser;
 
@@ -66,3 +74,8 @@ void setup()
   runUnityTests();
 }
 void loop() {}
+
+int main(void)
+{
+  return runUnityTests();
+}

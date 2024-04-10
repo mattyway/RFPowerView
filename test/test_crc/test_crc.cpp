@@ -2,6 +2,14 @@
 #include <Arduino.h>
 #include "PacketCRC.h"
 
+void setUp()
+{
+}
+
+void tearDown()
+{
+}
+
 void run_calculate_test(const uint8_t *packet_data, const uint16_t expected_checksum)
 {
   PacketCRC packetCRC;
@@ -83,3 +91,8 @@ void setup()
   runUnityTests();
 }
 void loop() {}
+
+int main(void)
+{
+  return runUnityTests();
+}
