@@ -17,7 +17,7 @@ void run_calculate_test(const uint8_t *packet_data, const uint16_t expected_chec
 
   uint16_t actual_checksum = packetCRC.calculate(packet_data);
 
-  TEST_ASSERT_EQUAL_UINT16(expected_checksum, actual_checksum);
+  TEST_ASSERT_EQUAL_HEX16(expected_checksum, actual_checksum);
 }
 
 void test_calculate_withDataLengthOf15()
