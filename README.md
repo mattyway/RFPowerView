@@ -46,7 +46,7 @@ Note: this type of address seems to be used when a hub is activating a scene (an
 | 0 | 16 | Destination ID | The ID of device that should process the packet | `0x0000`-`0xFFFF` |
 | 2 | 16 | Logical Source ID | The ID of device where the packet originated (hubs seem to always be 0x0000) | `0x0000`-`0xFFFF` |
 
-Note: this type of address is used when a hub wants to communicate with a specific blind.
+Note: this type of address is used when a hub wants to communicate with a specific blind or when a blind is communicating with a hub.
 
 #### Groups address
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
@@ -103,9 +103,9 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | Length | `0x11` |  |
 | Rolling Code 1 | `0x6C` |  |
 | Rolling Code 2 | `0x3C` |  |
-| Physical Source ID | `0x369E` |  |
-| Address type | `0x06` | Groups |
-| Logical Source ID | `0x369E` | Same as Physical Source ID |
+| Physical Source ID | `0x369E` | ID of pebble remote |
+| Address type | `0x06` | Using Groups address type |
+| Logical Source ID | `0x369E` | ID of pebble remote (same as Physical Source ID) |
 | Groups | 4 | Only a single group specified |
 | Checksum | `0xB988` | |
 
@@ -120,9 +120,9 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | Rolling Code 1 | `0x92` |  |
 | Rolling Code 2 | `0x4E` |  |
 | Physical Source ID | `0x72CB` | ID of repeater |
-| Address type | `0x05` | Unicast |
+| Address type | `0x05` | Using Unicast address type |
 | Destination ID | `0x4EF1` | ID of blind |
-| Logical Source ID | `0x0000` | ID of hub |
+| Logical Source ID | `0x0000` | ID of hub (different than Physical Source ID) |
 | Field 1 | `023F50` | Field of 2 bytes, ID = `0x50` (position) |
 | Field 2 | `023F4D` | Field of 2 bytes, ID = `0x4D` (unknown) |
 | Field 3 | `023F54` | Field of 2 bytes, ID = `0x54` (unknown) |
@@ -138,8 +138,8 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | Rolling Code 1 | `0xE0` |  |
 | Rolling Code 2 | `0x1A` |  |
 | Physical Source ID | `0x4EF1` | ID of blind |
-| Address type | `0x05` | Unicast |
-| Destination ID | `0x0000` | ID of blind |
+| Address type | `0x05` | Using Unicast address type |
+| Destination ID | `0x0000` | ID of hub |
 | Logical Source ID | `0x4EF1` | ID of blind |
 | Field 1 | `0421504001` | Field of 4 bytes, ID = `0x50` (position), value = `0x4001` |
 | Checksum  | `0x6670` |  |
@@ -155,8 +155,8 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | Rolling Code 1 | `0x58` |  |
 | Rolling Code 2 | `0xC1` |  |
 | Physical Source ID | `0x4EF1` | ID of blind |
-| Address type | `0x05` | Unicast |
-| Destination ID | `0x0000` | ID of blind |
+| Address type | `0x05` | Using Unicast address type |
+| Destination ID | `0x0000` | ID of hub |
 | Logical Source ID | `0x4EF1` | ID of blind |
 | Field 1 | `0321429D` | Field of 3 bytes, ID = `0x42` (battery level), value = `0x9D` |
 | Checksum  | `0xEC23` |  |
@@ -171,8 +171,8 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | Rolling Code 1 | `0xA1` |  |
 | Rolling Code 2 | `0xFF` |  |
 | Physical Source ID | `0x0000` | ID of hub |
-| Address type | `0x04` | Broadcast |
-| Logical Source ID | `0x0000` | ID of blind |
+| Address type | `0x04` | Using Broadcast address type |
+| Logical Source ID | `0x0000` | ID of hub |
 | Scene ID | `1B` |  |
 | Checksum  | `0x446B` |  |
 
