@@ -1,5 +1,6 @@
 #include <unity.h>
 #include <Arduino.h>
+#include "../hex_helper.h"
 #include "PacketParser.h"
 
 void setUp()
@@ -21,35 +22,41 @@ void run_parse_test(const uint8_t *packet_data, Packet &packet)
 
 void test_parse_stop()
 {
-  const uint8_t packet_data[] = {0xC0, 0x11, 0x00, 0x05, 0x6C, 0xFF, 0xFF, 0x36, 0x9E, 0x86, 0x06, 0x3C, 0x04, 0x00, 0x36, 0x9E, 0x52, 0x53, 0x00};
+  const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
 
   Packet packet;
 
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::STOP);
+
+  delete[] packet_data;
 }
 
 void test_parse_close()
 {
-  const uint8_t packet_data[] = {0xC0, 0x11, 0x00, 0x05, 0x6C, 0xFF, 0xFF, 0x36, 0x9E, 0x86, 0x06, 0x3C, 0x04, 0x00, 0x36, 0x9E, 0x52, 0x44, 0x00};
+  const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E524400");
 
   Packet packet;
 
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::CLOSE);
+
+  delete[] packet_data;
 }
 
 void test_parse_open()
 {
-  const uint8_t packet_data[] = {0xC0, 0x11, 0x00, 0x05, 0x6C, 0xFF, 0xFF, 0x36, 0x9E, 0x86, 0x06, 0x3C, 0x04, 0x00, 0x36, 0x9E, 0x52, 0x55, 0x00};
+  const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525500");
 
   Packet packet;
 
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::OPEN);
+
+  delete[] packet_data;
 }
 
 int runUnityTests(void)

@@ -1,5 +1,6 @@
 #include <unity.h>
 #include <Arduino.h>
+#include "../hex_helper.h"
 #include "PacketCRC.h"
 
 void setUp()
@@ -21,50 +22,62 @@ void run_calculate_test(const uint8_t *packet_data, const uint16_t expected_chec
 
 void test_calculate_withDataLengthOf15()
 {
-  const uint8_t packet_data[] = {0xC0, 0x0F, 0x00, 0x05, 0xA1, 0xFF, 0xFF, 0x00, 0x00, 0x86, 0x04, 0xFF, 0x00, 0x00, 0x53, 0x47, 0x1B};
+  const uint8_t* packet_data = hex_string_to_array("C00F0005A1FFFF00008604FF000053471B");
   const uint16_t expected_checksum = 0x446B;
 
   run_calculate_test(packet_data, expected_checksum);
+
+  delete[] packet_data;
 }
 
 void test_calculate_withDataLengthOf17()
 {
-  const uint8_t packet_data[] = {0xC0, 0x11, 0x00, 0x05, 0xD7, 0xFF, 0xFF, 0x36, 0x9E, 0x86, 0x06, 0xB3, 0x04, 0x00, 0x36, 0x9E, 0x52, 0x53, 0x00};
+  const uint8_t* packet_data = hex_string_to_array("C0110005D7FFFF369E8606B30400369E525300");
   const uint16_t expected_checksum = 0xE04C;
 
   run_calculate_test(packet_data, expected_checksum);
+
+  delete[] packet_data;
 }
 
 void test_calculate_withDataLengthOf19()
 {
-  const uint8_t packet_data[] = {0xC0, 0x13, 0x00, 0x05, 0xDD, 0xFF, 0xFF, 0x00, 0x00, 0x86, 0x05, 0x36, 0x4E, 0xF1, 0x00, 0x00, 0x3F, 0x5A, 0x02, 0x3F, 0x42};
+  const uint8_t* packet_data = hex_string_to_array("C0130005DDFFFF00008605364EF100003F5A023F42");
   const uint16_t expected_checksum = 0x9BD3;
 
   run_calculate_test(packet_data, expected_checksum);
+
+  delete[] packet_data;
 }
 
 void test_calculate_withDataLengthOf20()
 {
-  const uint8_t packet_data[] = {0xC0, 0x14, 0x10, 0x05, 0x59, 0xFF, 0xFF, 0x4E, 0xF1, 0x86, 0x05, 0xC2, 0x00, 0x00, 0x4E, 0xF1, 0x21, 0x5A, 0x03, 0x21, 0x42, 0x9C};
+  const uint8_t* packet_data = hex_string_to_array("C014100559FFFF4EF18605C200004EF1215A0321429C");
   const uint16_t expected_checksum = 0x4A8B;
 
   run_calculate_test(packet_data, expected_checksum);
+
+  delete[] packet_data;
 }
 
 void test_calculate_withDataLengthOf21()
 {
-  const uint8_t packet_data[] = {0xC0, 0x15, 0x10, 0x05, 0xEA, 0xFF, 0xFF, 0x4E, 0xF1, 0x86, 0x05, 0x24, 0x00, 0x00, 0x4E, 0xF1, 0x21, 0x46, 0x4E, 0x98, 0x07, 0x08, 0x01};
+  const uint8_t* packet_data = hex_string_to_array("C0151005EAFFFF4EF186052400004EF121464E98070801");
   const uint16_t expected_checksum = 0x9887;
 
   run_calculate_test(packet_data, expected_checksum);
+
+  delete[] packet_data;
 }
 
 void test_calculate_withDataLengthOf25()
 {
-  const uint8_t packet_data[] = {0xC0, 0x19, 0x00, 0x05, 0x47, 0xFF, 0xFF, 0x00, 0x00, 0x86, 0x05, 0x3D, 0x4E, 0xF1, 0x00, 0x00, 0x3F, 0x5A, 0x02, 0x3F, 0x50, 0x02, 0x3F, 0x4D, 0x02, 0x3F, 0x54};
+  const uint8_t* packet_data = hex_string_to_array("C019000547FFFF000086053D4EF100003F5A023F50023F4D023F54");
   const uint16_t expected_checksum = 0x8318;
 
   run_calculate_test(packet_data, expected_checksum);
+
+  delete[] packet_data;
 }
 
 int runUnityTests(void)
