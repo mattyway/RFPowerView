@@ -17,7 +17,7 @@ void run_parse_test(const uint8_t *packet_data, Packet &packet)
 
   bool result = packetParser.parsePacket(packet_data, packet);
 
-  TEST_ASSERT_TRUE(result);
+  TEST_ASSERT_TRUE_MESSAGE(result, "Unable to parse packet_data");
 }
 
 void test_parse_stop()
