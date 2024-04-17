@@ -13,6 +13,44 @@ Library for sending and receiving PowerView packets so that blinds can be contro
 - Query position
 - Query battery level
 
+## Code Sample
+
+```
+#include <Arduino.h>
+#include <RFPowerView.h>
+
+// These define which pins should be used to communicate with the nRF24L01 board
+#define RF_CE_PIN   5
+#define RF_CS_PIN   15
+#define RF_IRQ_PIN  4
+
+// Copied from Powerview Hub userdata API. Open http://POWERVIEW_HUB_IP_ADDRESS/api/userdata/ and find the field labeled "rfID"
+#define RF_ID       0x2ECB
+
+RFPowerView powerView(RF_CE_PIN, RF_CS_PIN, RF_IRQ_PIN, RF_ID);
+
+void processPacket(const Packet*);
+
+void setup() {
+  powerView.setPacketReceivedCallback(processPacket);
+  if (!powerView.begin()) {
+    // Failed to start RFPowerView
+    return;
+  }
+}
+
+void loop() {
+  powerView.loop();
+}
+
+void processPacket(const Packet *packet) {
+    // TODO: React to packet
+}
+
+```
+
+See [PowerViewSniffer](https://github.com/mattyway/PowerViewSniffer/) for a more complete example.
+
 ## Protocol
 
 A PowerView packet consists of a header (which contains a variable length address section), a variable length payload, and a two byte checksum at the end. Each packet is limited to being at most 32 bytes due to limitations of the nRF24L01 module.
@@ -92,88 +130,98 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 |---|---|---|---|---|
 | 0 | 16 | Checksum | A CRC16 checksum of the packet data | `0x0000`-`0xFFFF` |
 
-## Examples
+## Sample Packets
 
 ### Open blinds in group 4
 
-`C01100056CFFFF369E86063C0400369E525500B988`
+```
+C01100056CFFFF369E86063C0400369E525500B988
+```
 
-| Name | Value | Notes |
-|---|---|---|
-| Length | `0x11` |  |
-| Rolling Code 1 | `0x6C` |  |
-| Rolling Code 2 | `0x3C` |  |
-| Physical Source ID | `0x369E` | ID of pebble remote |
-| Address type | `0x06` | Using Groups address type |
-| Logical Source ID | `0x369E` | ID of pebble remote (same as Physical Source ID) |
-| Groups | 4 | Only a single group specified |
-| Checksum | `0xB988` | |
+| Byte Offset | Name | Value | Notes |
+|---|---|---|---|
+| 1 | Length | `0x11` |  |
+| 4 | Rolling Code 1 | `0x6C` |  |
+| 7 | Physical Source ID | `0x369E` | ID of pebble remote |
+| 10 | Address type | `0x06` | Using Groups address type |
+| 11 | Rolling Code 2 | `0x3C` |  |
+| 12 | Groups | 4 | Only a single group specified |
+| 14 | Logical Source ID | `0x369E` | ID of pebble remote (same as Physical Source ID) |
+| 19 | Checksum | `0xB988` | |
 
 
 ### Hub requesting values from a blind
 
-`C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3`
+```
+C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3
+```
 
-| Name | Value | Notes |
-|---|---|---|
-| Length | `0x19` |  |
-| Rolling Code 1 | `0x92` |  |
-| Rolling Code 2 | `0x4E` |  |
-| Physical Source ID | `0x72CB` | ID of repeater |
-| Address type | `0x05` | Using Unicast address type |
-| Destination ID | `0x4EF1` | ID of blind |
-| Logical Source ID | `0x0000` | ID of hub (different than Physical Source ID) |
-| Field 1 | `023F50` | Field of 2 bytes, ID = `0x50` (position) |
-| Field 2 | `023F4D` | Field of 2 bytes, ID = `0x4D` (unknown) |
-| Field 3 | `023F54` | Field of 2 bytes, ID = `0x54` (unknown) |
-| Checksum  | `0xC9F3` |  |
+| Byte Offset | Name | Value | Notes |
+|---|---|---|---|
+| 1 | Length | `0x19` |  |
+| 4 | Rolling Code 1 | `0x92` |  |
+| 7 | Physical Source ID | `0x72CB` | ID of repeater |
+| 10 | Address type | `0x05` | Using Unicast address type |
+| 11 | Rolling Code 2 | `0x4E` |  |
+| 12 | Destination ID | `0x4EF1` | ID of blind |
+| 14 | Logical Source ID | `0x0000` | ID of hub (different than Physical Source ID) |
+| 18 | Field 1 | `023F50` | Field of 2 bytes, ID = `0x50` (position) |
+| 21 | Field 2 | `023F4D` | Field of 2 bytes, ID = `0x4D` (unknown) |
+| 24 | Field 3 | `023F54` | Field of 2 bytes, ID = `0x54` (unknown) |
+| 27 | Checksum  | `0xC9F3` |  |
 
 ### Blind reporting position value to hub
 
-`C0151005E0FFFF4EF186051A00004EF1215A04215040016670`
+```
+C0151005E0FFFF4EF186051A00004EF1215A04215040016670
+```
 
-| Name | Value | Notes |
-|---|---|---|
-| Length | `0x15` |  |
-| Rolling Code 1 | `0xE0` |  |
-| Rolling Code 2 | `0x1A` |  |
-| Physical Source ID | `0x4EF1` | ID of blind |
-| Address type | `0x05` | Using Unicast address type |
-| Destination ID | `0x0000` | ID of hub |
-| Logical Source ID | `0x4EF1` | ID of blind |
-| Field 1 | `0421504001` | Field of 4 bytes, ID = `0x50` (position), value = `0x4001` |
-| Checksum  | `0x6670` |  |
+| Byte Offset | Name | Value | Notes |
+|---|---|---|---|
+| 1 | Length | `0x15` |  |
+| 4 | Rolling Code 1 | `0xE0` |  |
+| 7 | Physical Source ID | `0x4EF1` | ID of blind |
+| 10 | Address type | `0x05` | Using Unicast address type |
+| 11 | Rolling Code 2 | `0x1A` |  |
+| 12 | Destination ID | `0x0000` | ID of hub |
+| 14 | Logical Source ID | `0x4EF1` | ID of blind |
+| 18 | Field 1 | `0421504001` | Field of 4 bytes, ID = `0x50` (position), value = `0x4001` |
+| 23 | Checksum  | `0x6670` |  |
 
 
 ### Blind reporting battery level value to hub
 
-`C014100558FFFF4EF18605C100004EF1215A0321429DEC23`
+```
+C014100558FFFF4EF18605C100004EF1215A0321429DEC23
+```
 
-| Name | Value | Notes |
-|---|---|---|
-| Length | `0x14` |  |
-| Rolling Code 1 | `0x58` |  |
-| Rolling Code 2 | `0xC1` |  |
-| Physical Source ID | `0x4EF1` | ID of blind |
-| Address type | `0x05` | Using Unicast address type |
-| Destination ID | `0x0000` | ID of hub |
-| Logical Source ID | `0x4EF1` | ID of blind |
-| Field 1 | `0321429D` | Field of 3 bytes, ID = `0x42` (battery level), value = `0x9D` |
-| Checksum  | `0xEC23` |  |
+| Byte Offset | Name | Value | Notes |
+|---|---|---|---|
+| 1 | Length | `0x14` |  |
+| 4 | Rolling Code 1 | `0x58` |  |
+| 7 | Physical Source ID | `0x4EF1` | ID of blind |
+| 10 | Address type | `0x05` | Using Unicast address type |
+| 11 | Rolling Code 2 | `0xC1` |  |
+| 12 | Destination ID | `0x0000` | ID of hub |
+| 14 | Logical Source ID | `0x4EF1` | ID of blind |
+| 18 | Field 1 | `0321429D` | Field of 3 bytes, ID = `0x42` (battery level), value = `0x9D` |
+| 22 | Checksum  | `0xEC23` |  |
 
 ### Hub activating a scene
 
-`C00F0005A1FFFF00008604FF000053471B446B`
+```
+C00F0005A1FFFF00008604FF000053471B446B
+```
 
-| Name | Value | Notes |
-|---|---|---|
-| Length | `0x0F` |  |
-| Rolling Code 1 | `0xA1` |  |
-| Rolling Code 2 | `0xFF` |  |
-| Physical Source ID | `0x0000` | ID of hub |
-| Address type | `0x04` | Using Broadcast address type |
-| Logical Source ID | `0x0000` | ID of hub |
-| Scene ID | `1B` |  |
-| Checksum  | `0x446B` |  |
+| Byte Offset | Name | Value | Notes |
+|---|---|---|---|
+| 1 | Length | `0x0F` |  |
+| 4 | Rolling Code 1 | `0xA1` |  |
+| 7 | Physical Source ID | `0x0000` | ID of hub |
+| 10 | Address type | `0x04` | Using Broadcast address type |
+| 11 | Rolling Code 2 | `0xFF` |  |
+| 12 | Logical Source ID | `0x0000` | ID of hub |
+| 16 | Scene ID | `1B` |  |
+| 17 | Checksum  | `0x446B` |  |
 
 Note: activating scenes is not supported by the library (yet!)
