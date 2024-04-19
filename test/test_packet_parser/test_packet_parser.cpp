@@ -166,6 +166,21 @@ void test_broadcast_source_address()
   delete[] packet_data;
 }
 
+void test_parse_activate_scene()
+{
+  const uint8_t* packet_data = hex_string_to_array("C00F0005A1FFFF00008604FF000053471B446B");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  auto parameters = std::get<ActivateSceneParameters>(packet.parameters);
+
+  TEST_ASSERT_EQUAL_HEX8(0x1B, parameters.sceneID);
+
+  delete[] packet_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -179,6 +194,7 @@ int runUnityTests(void)
   RUN_TEST(test_unicast_source_address);
   RUN_TEST(test_unicast_destination_address);
   RUN_TEST(test_broadcast_source_address);
+  RUN_TEST(test_parse_activate_scene);
   return UNITY_END();
 }
 

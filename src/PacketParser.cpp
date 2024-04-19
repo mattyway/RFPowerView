@@ -74,6 +74,9 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
         std::vector<Field> fields;
         parseFields(buffer, fields);
         packet.parameters = FieldsParameters{fields};
+    } else if (buffer[dataOffset + 0] == 0x53 && buffer[dataOffset + 1] == 0x47) {
+        packet.type = PacketType::ACTIVATE_SCENE;
+        packet.parameters = ActivateSceneParameters{buffer[dataOffset + 2]};
     } else {
         packet.type = PacketType::UNKNOWN;
         packet.parameters = std::monostate{};
