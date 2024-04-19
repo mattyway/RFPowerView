@@ -72,7 +72,7 @@ void test_parse_rolling_codes()
   delete[] packet_data;
 }
 
-void test_broadcast_source_address()
+void test_groups_source_address()
 {
   const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
 
@@ -87,7 +87,7 @@ void test_broadcast_source_address()
   delete[] packet_data;
 }
 
-void test_broadcast_single_group()
+void test_groups_single_group()
 {
   const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
 
@@ -103,7 +103,7 @@ void test_broadcast_single_group()
   delete[] packet_data;
 }
 
-void test_broadcast_multiple_groups()
+void test_groups_multiple_groups()
 {
   const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C03040500369E525300");
 
@@ -158,9 +158,9 @@ int runUnityTests(void)
   RUN_TEST(test_parse_close);
   RUN_TEST(test_parse_open);
   RUN_TEST(test_parse_rolling_codes);
-  RUN_TEST(test_broadcast_source_address);
-  RUN_TEST(test_broadcast_single_group);
-  RUN_TEST(test_broadcast_multiple_groups);
+  RUN_TEST(test_groups_source_address);
+  RUN_TEST(test_groups_single_group);
+  RUN_TEST(test_groups_multiple_groups);
   RUN_TEST(test_unicast_source_address);
   RUN_TEST(test_unicast_destination_address);
   return UNITY_END();
