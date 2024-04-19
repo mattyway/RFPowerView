@@ -181,6 +181,68 @@ void test_parse_activate_scene()
   delete[] packet_data;
 }
 
+void test_parse_fields()
+{
+  const uint8_t* packet_data = hex_string_to_array("C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  auto parameters = std::get<FieldsParameters>(packet.parameters);
+
+  TEST_ASSERT_EQUAL_INT(3, parameters.fields.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.fields[0].identifier);
+  TEST_ASSERT_FALSE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should not have a value.");
+
+  TEST_ASSERT_EQUAL_HEX8(0x4D, parameters.fields[1].identifier);
+  TEST_ASSERT_FALSE_MESSAGE(parameters.fields[1].hasValue, "Field 1 should not have a value.");
+
+  TEST_ASSERT_EQUAL_HEX8(0x54, parameters.fields[2].identifier);
+  TEST_ASSERT_FALSE_MESSAGE(parameters.fields[2].hasValue, "Field 2 should not have a value.");
+
+  delete[] packet_data;
+}
+
+void test_parse_fields_data_uint16()
+{
+  const uint8_t* packet_data = hex_string_to_array("C0151005E0FFFF4EF186051A00004EF1215A04215040016670");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  auto parameters = std::get<FieldsParameters>(packet.parameters);
+
+  TEST_ASSERT_EQUAL_INT(1, parameters.fields.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.fields[0].identifier);
+  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should have a value.");
+  TEST_ASSERT_EQUAL_HEX16(0x0140, std::get<uint16_t>(parameters.fields[0].value));
+
+  delete[] packet_data;
+}
+
+void test_parse_fields_data_uint8()
+{
+  const uint8_t* packet_data = hex_string_to_array("C014100558FFFF4EF18605C100004EF1215A0321429DEC23");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  auto parameters = std::get<FieldsParameters>(packet.parameters);
+
+  TEST_ASSERT_EQUAL_INT(1, parameters.fields.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x42, parameters.fields[0].identifier);
+  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should have a value.");
+  TEST_ASSERT_EQUAL_HEX8(0x9D, std::get<uint8_t>(parameters.fields[0].value));
+
+  delete[] packet_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -195,6 +257,9 @@ int runUnityTests(void)
   RUN_TEST(test_unicast_destination_address);
   RUN_TEST(test_broadcast_source_address);
   RUN_TEST(test_parse_activate_scene);
+  RUN_TEST(test_parse_fields);
+  RUN_TEST(test_parse_fields_data_uint16);
+  RUN_TEST(test_parse_fields_data_uint8);
   return UNITY_END();
 }
 
