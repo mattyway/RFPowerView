@@ -7,14 +7,12 @@
 
 class BufferFiller {
 public:
-    BufferFiller(uint8_t protocolVersion);
+    BufferFiller();
     ~BufferFiller();
 
     bool fill(uint8_t *buffer, const Packet* packet);
 
 private:
-    uint8_t protocolVersion;
-
     PacketCRC packetCRC;
 
     void setPacketSize(uint8_t *buffer, uint8_t);

@@ -1,7 +1,6 @@
 #include "BufferFiller.h"
 
-BufferFiller::BufferFiller(uint8_t protocolVersion) : 
-    protocolVersion(protocolVersion)
+BufferFiller::BufferFiller()
 {
 }
 
