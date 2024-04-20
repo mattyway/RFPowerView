@@ -75,6 +75,9 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::FIELDS: {
+      if (!std::holds_alternative<FieldsParameters>(packet->parameters)) {
+        return false;
+      }
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
       // 0x10 is the number of bytes without any fields
       setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
@@ -84,6 +87,9 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       break;
     }
     case PacketType::FIELD_COMMAND: {
+      if (!std::holds_alternative<FieldsParameters>(packet->parameters)) {
+        return false;
+      }
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
       // 0x10 is the number of bytes without any fields
       setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
