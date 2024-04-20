@@ -15,7 +15,8 @@ public:
 private:
     PacketCRC packetCRC;
 
-    void setPacketSize(uint8_t *buffer, uint8_t);
+    void setPacketSize(uint8_t *buffer, uint8_t size);
+    void setPacketSize(uint8_t *buffer, uint8_t dataOffset, uint8_t dataLength);
     void setConstants(uint8_t *buffer);
     void setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t source);
     void setDestinationAddress(uint8_t *buffer, uint8_t offset, uint16_t destination);

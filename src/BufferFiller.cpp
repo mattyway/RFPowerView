@@ -39,37 +39,37 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
 
   switch(packet->type) {
     case PacketType::STOP:
-      setPacketSize(buffer, 0x11);
+      setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x52;
       buffer[dataOffset + 1] = 0x53;
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::CLOSE:
-      setPacketSize(buffer, 0x11);
+      setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x52;
       buffer[dataOffset + 1] = 0x44;
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::OPEN:
-      setPacketSize(buffer, 0x11);
+      setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x52;
       buffer[dataOffset + 1] = 0x55;
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::CLOSE_SLOW:
-      setPacketSize(buffer, 0x11);
+      setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x52;
       buffer[dataOffset + 1] = 0x4C;
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::OPEN_SLOW:
-      setPacketSize(buffer, 0x11);
+      setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x52;
       buffer[dataOffset + 1] = 0x52;
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::MOVE_TO_SAVED_POSITION:
-      setPacketSize(buffer, 0x11);
+      setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x52;
       buffer[dataOffset + 1] = 0x48;
       buffer[dataOffset + 2] = 0x00;
@@ -79,8 +79,7 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
         return false;
       }
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
-      // 0x10 is the number of bytes without any fields
-      setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
+      setPacketSize(buffer, dataOffset, calculateTotalFieldSize(parameters));
       buffer[dataOffset + 0] = 0x21;
       buffer[dataOffset + 1] = 0x5A;
       setFieldsData(buffer, dataOffset + 2, parameters);
@@ -91,8 +90,7 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
         return false;
       }
       FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
-      // 0x10 is the number of bytes without any fields
-      setPacketSize(buffer, 0x10 + calculateTotalFieldSize(parameters));
+      setPacketSize(buffer, dataOffset, calculateTotalFieldSize(parameters));
       buffer[dataOffset + 0] = 0x3F;
       buffer[dataOffset + 1] = 0x5A;
       setFieldsData(buffer, dataOffset + 2, parameters);
@@ -141,8 +139,12 @@ void BufferFiller::setFieldsData(uint8_t *buffer, uint8_t offset, const FieldsPa
   }
 }
 
-void BufferFiller::setPacketSize(uint8_t *buffer, uint8_t length) {
-  buffer[1] = length;  // Packet size
+void BufferFiller::setPacketSize(uint8_t *buffer, uint8_t size) {
+  buffer[1] = size;  // Packet size
+}
+
+void BufferFiller::setPacketSize(uint8_t *buffer, uint8_t dataOffset, uint8_t dataLength) {
+  buffer[1] = (dataOffset - 2) + dataLength;  // Packet size
 }
 
 void BufferFiller::setConstants(uint8_t *buffer) {
@@ -194,7 +196,7 @@ void BufferFiller::calculateCRC(uint8_t *buffer) { // must be called after the b
 }
 
 uint8_t BufferFiller::calculateTotalFieldSize(const FieldsParameters& parameters) {
-  uint8_t totalSize = 0;
+  uint8_t totalSize = 2;
   for (size_t i = 0; i < parameters.fields.size(); i++) {
     Field field = parameters.fields[i];
     totalSize += calculateFieldSize(field);
