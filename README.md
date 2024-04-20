@@ -12,6 +12,7 @@ Library for sending and receiving PowerView packets so that blinds can be contro
 - Move to position
 - Query position
 - Query battery level
+- Activate scene
 
 ## Code Sample
 
@@ -240,5 +241,3 @@ C00F0005A1FFFF00008604FF000053471B446B
 | 12 | Logical Source ID | `0x0000` | ID of hub |
 | 16 | Scene ID | `1B` |  |
 | 17 | Checksum  | `0x446B` |  |
-
-Note: activating scenes is not supported by the library (yet!)
