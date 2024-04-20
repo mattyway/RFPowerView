@@ -66,7 +66,7 @@ A PowerView packet consists of a header (which contains a variable length addres
 | 4 | 8 | Rolling Code 1 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
 | 5 | 16 | Fixed | These two bytes are always the same. | `0xFFFF` |
 | 7 | 16 | Physical Source ID | The ID of device that actually sent the packet (can be different to Logical Source ID when a repeater is being used) | `0x0000`-`0xFFFF` |
-| 9 | 8 | Fixed | This byte is always the same | `0x86` |
+| 9 | 8 | Unknown | This byte might indicate if the packet was retransmitted by a repeater | `0x86` (when sent from hub or remote), `0x85` (when sent from repeater) |
 | 10 | 8 | Address Type | Indicates which type of address this packet is using. | `0x04` (Broadcast), `0x05` (Unicast), `0x06` (Groups) |
 | 11 | 8 | Rolling Code 2 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
 | 12 | Varies | Address | This section is a variable length. | Broadcast, Unicast, or Groups section (see next section) |

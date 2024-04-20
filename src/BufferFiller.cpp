@@ -167,7 +167,7 @@ void BufferFiller::setConstants(uint8_t *buffer) {
   buffer[5] = 0xFF;  // Constant
   buffer[6] = 0xFF;  // Constant
 
-  buffer[9] = 0x86;  // Constant?
+  buffer[9] = 0x86;  // Not sure, seems to be 0x85 if a packet is retransmitted by a repeater
 }
 
 void BufferFiller::setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t sourceID) {
