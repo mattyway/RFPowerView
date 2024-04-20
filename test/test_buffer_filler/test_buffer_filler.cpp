@@ -205,7 +205,7 @@ void test_fill_unicast_open()
   delete[] expected_data;
 }
 
-void test_fill_fields()
+void test_fill_fields_fetch()
 {
   uint8_t packet_data[32];
 
@@ -244,6 +244,36 @@ void test_fill_fields()
   delete[] expected_data;
 }
 
+void test_fill_fields_set()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  auto header = UnicastHeader {};
+  header.source = 0x0000;
+  header.destination = 0x4EF1;
+  packet.header = header;
+  packet.type = PacketType::FIELD_COMMAND;
+  auto parameters = FieldsParameters {};
+  auto field1 = Field {};
+  field1.identifier = 0x50;
+  field1.type = FieldType::SET;
+  field1.hasValue = true;
+  field1.value = (uint16_t)0xFFFF;
+  parameters.fields.push_back(field1);
+  packet.parameters = parameters;
+  packet.rollingCode1 = 0x29;
+  packet.rollingCode2 = 0xB9;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C015000529FFFF00008605B94EF100003F5A044050FFFF286B");
+  
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 25);
+  
+  delete[] expected_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -255,7 +285,8 @@ int runUnityTests(void)
   RUN_TEST(test_fill_unicast_stop);
   RUN_TEST(test_fill_unicast_close);
   RUN_TEST(test_fill_unicast_open);
-  RUN_TEST(test_fill_fields);
+  RUN_TEST(test_fill_fields_fetch);
+  RUN_TEST(test_fill_fields_set);
   return UNITY_END();
 }
 
