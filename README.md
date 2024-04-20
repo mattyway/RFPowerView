@@ -110,7 +110,7 @@ Note: this type of payload is used by both the hub and pebble remotes. Used for 
 #### Fields payload
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
-| 0 | 8 | Field Mode | Indicates the payloads contains "fields" | `0x3F` (fields without values), `0x21` (fields with values) |
+| 0 | 8 | Packet Type | Indicates the payloads contains "fields" | `0x3F` (command), `0x21` (report) |
 | 1 | 8 | Fixed | This byte is always the same. | `0x5A` |
 | 2 | varies | Field data | This section is a variable length depending on the number of fields the payload contains | Field data (see next section) |
 
@@ -120,7 +120,7 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
 | 0 | 8 | Field Length | Indicates how many bytes are in this field | `0x02`-`0x04` |
-| 1 | 8 | Field Mode | Seems to always be the same as the first Field Mode | `0x3F` (fields without values), `0x21` (fields with values) |
+| 1 | 8 | Field Mode | Indicates how value should be used | `0x3F` (fetch), `0x40` (set), `0x21` (value) |
 | 2 | 8 | Field ID | The field ID | `0x00`-`0xFF`, eg. `0x50` is Position, `0x42` is Battery level |
 | 3 (if length=3) | 8 | Field Value | The value of the field | `0x00`-`0xFF` |
 | 3 (if length=4) | 16 | Field Value | The value of the field | `0x0000`-`0xFFFF` |
@@ -165,9 +165,9 @@ C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3
 | 11 | Rolling Code 2 | `0x4E` |  |
 | 12 | Destination ID | `0x4EF1` | ID of blind |
 | 14 | Logical Source ID | `0x0000` | ID of hub (different than Physical Source ID) |
-| 18 | Field 1 | `023F50` | Field of 2 bytes, ID = `0x50` (position) |
-| 21 | Field 2 | `023F4D` | Field of 2 bytes, ID = `0x4D` (unknown) |
-| 24 | Field 3 | `023F54` | Field of 2 bytes, ID = `0x54` (unknown) |
+| 18 | Field 1 | `023F50` | Field of 2 bytes, Mode = `0x3F` (fetch), ID = `0x50` (position) |
+| 21 | Field 2 | `023F4D` | Field of 2 bytes, Mode = `0x3F` (fetch), ID = `0x4D` (unknown) |
+| 24 | Field 3 | `023F54` | Field of 2 bytes, Mode = `0x3F` (fetch), ID = `0x54` (unknown) |
 | 27 | Checksum  | `0xC9F3` |  |
 
 ### Blind reporting position value to hub
@@ -185,7 +185,7 @@ C0151005E0FFFF4EF186051A00004EF1215A04215040016670
 | 11 | Rolling Code 2 | `0x1A` |  |
 | 12 | Destination ID | `0x0000` | ID of hub |
 | 14 | Logical Source ID | `0x4EF1` | ID of blind |
-| 18 | Field 1 | `0421504001` | Field of 4 bytes, ID = `0x50` (position), value = `0x4001` |
+| 18 | Field 1 | `0421504001` | Field of 4 bytes, Mode = `0x21` (value), ID = `0x50` (position), Value = `0x4001` |
 | 23 | Checksum  | `0x6670` |  |
 
 
@@ -204,8 +204,25 @@ C014100558FFFF4EF18605C100004EF1215A0321429DEC23
 | 11 | Rolling Code 2 | `0xC1` |  |
 | 12 | Destination ID | `0x0000` | ID of hub |
 | 14 | Logical Source ID | `0x4EF1` | ID of blind |
-| 18 | Field 1 | `0321429D` | Field of 3 bytes, ID = `0x42` (battery level), value = `0x9D` |
+| 18 | Field 1 | `0321429D` | Field of 3 bytes, Mode = `0x21` (value), ID = `0x42` (battery level), Value = `0x9D` |
 | 22 | Checksum  | `0xEC23` |  |
+
+### Hub setting position of a blind
+
+```
+C015000529FFFF00008605B94EF100003F5A044050FFFF286B
+```
+| Byte Offset | Name | Value | Notes |
+|---|---|---|---|
+| 1 | Length | `0x15` |  |
+| 4 | Rolling Code 1 | `0x29` |  |
+| 7 | Physical Source ID | `0x0000` | ID of hub |
+| 10 | Address type | `0x05` | Using Unicast address type |
+| 11 | Rolling Code 2 | `0xB9` |  |
+| 12 | Destination ID | `0x4EF1` | ID of blind |
+| 14 | Logical Source ID | `0x0000` | ID of hub |
+| 18 | Field 1 | `044050FFFF` | Field of 4 bytes, Mode = `0x40` (set), ID = `0x50` (position), Value = `0xFFFF` (100% open) |
+| 23 | Checksum  | `0x286B` |  |
 
 ### Hub activating a scene
 
