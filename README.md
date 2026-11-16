@@ -96,6 +96,15 @@ Note: this type of address is used when a hub wants to communicate with a specif
 
 Note: this type of address is used by pebble remotes. The Group Number corresponds to the the numbered buttons on the pebble remote. When multiple group numbers are included, generally they are in ascending order.
 
+#### Device IDs and Roles
+
+All 16-bit device IDs (`Physical Source ID`, `Logical Source ID`, and `Destination ID`) are transmitted big-endian.
+
+- **Hub (`0x0000`)**: The primary hub always uses ID `0x0000`. It communicates with shades via Unicast or scene Broadcasts, and can issue room-wide commands via Groups.
+- **Blinds / Shades**: A blind's radio ID is the shade `id` from the hub's HTTP API (`/api/shades`) with its two bytes swapped (eg. an API `id` of `61774` (`0xF14E`) would be radio ID `0x4EF1`). Blinds accept unicast commands from the hub, but ignore unicast commands originating from remote IDs.
+- **Pebble Remotes**: Remotes have unique 16-bit IDs and control shades using Groups addressing (buttons 1–6) rather than Unicast.
+- **Repeaters**: Repeaters have their own 16-bit IDs. When retransmitting a packet, a repeater inserts its own ID into `Physical Source ID` while preserving the originating device's `Logical Source ID`.
+
 ### Payload
 This section begins at the next byte following the variable length address section. I've observed two types of payloads: simple and "fields".
 
