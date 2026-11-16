@@ -324,6 +324,81 @@ void test_physical_source_from_remote()
   delete[] packet_data;
 }
 
+void test_is_same_command_matching_direct_and_repeated()
+{
+  // Direct packet from remote
+  const uint8_t* direct_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
+  // Relayed packet from repeater: different physicalSource (0x72CB), repeated (0x85), different rollingCode1 (0x92)
+  const uint8_t* repeated_data = hex_string_to_array("C011000592FFFF72CB85063C0400369E525300");
+
+  Packet direct_packet;
+  Packet repeated_packet;
+
+  run_parse_test(direct_data, direct_packet);
+  run_parse_test(repeated_data, repeated_packet);
+
+  TEST_ASSERT_TRUE(direct_packet.isSameCommand(repeated_packet));
+  TEST_ASSERT_TRUE(repeated_packet.isSameCommand(direct_packet));
+
+  delete[] direct_data;
+  delete[] repeated_data;
+}
+
+void test_is_same_command_different_rolling_code()
+{
+  const uint8_t* packet1_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
+  const uint8_t* packet2_data = hex_string_to_array("C01100056CFFFF369E86063D0400369E525300");
+
+  Packet packet1;
+  Packet packet2;
+
+  run_parse_test(packet1_data, packet1);
+  run_parse_test(packet2_data, packet2);
+
+  TEST_ASSERT_FALSE(packet1.isSameCommand(packet2));
+
+  delete[] packet1_data;
+  delete[] packet2_data;
+}
+
+void test_is_same_command_different_command()
+{
+  // STOP command
+  const uint8_t* stop_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
+  // CLOSE command
+  const uint8_t* close_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E524400");
+
+  Packet stop_packet;
+  Packet close_packet;
+
+  run_parse_test(stop_data, stop_packet);
+  run_parse_test(close_data, close_packet);
+
+  TEST_ASSERT_FALSE(stop_packet.isSameCommand(close_packet));
+
+  delete[] stop_data;
+  delete[] close_data;
+}
+
+void test_is_same_command_different_destination()
+{
+  // Group 4
+  const uint8_t* group4_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
+  // Group 5
+  const uint8_t* group5_data = hex_string_to_array("C01100056CFFFF369E86063C0500369E525300");
+
+  Packet group4_packet;
+  Packet group5_packet;
+
+  run_parse_test(group4_data, group4_packet);
+  run_parse_test(group5_data, group5_packet);
+
+  TEST_ASSERT_FALSE(group4_packet.isSameCommand(group5_packet));
+
+  delete[] group4_data;
+  delete[] group5_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -346,6 +421,10 @@ int runUnityTests(void)
   RUN_TEST(test_physical_source_from_repeater);
   RUN_TEST(test_physical_source_from_hub);
   RUN_TEST(test_physical_source_from_remote);
+  RUN_TEST(test_is_same_command_matching_direct_and_repeated);
+  RUN_TEST(test_is_same_command_different_rolling_code);
+  RUN_TEST(test_is_same_command_different_command);
+  RUN_TEST(test_is_same_command_different_destination);
   return UNITY_END();
 }
 

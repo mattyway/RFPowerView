@@ -78,7 +78,7 @@ Note on rolling codes and relayed copies:
 - **Rolling Code 1** tracks the physical transmitter: repeaters substitute their own counter while preserving payload and address.
 - **Rolling Code 2** tracks the logical command: repeaters (and relaying secondary hubs) leave it unchanged.
 - When a secondary PowerView hub relays commands, its copy keeps Physical Source ID `0x0000` and direct flag `0x86` in byte 9, while using its own Rolling Code 1 and preserving Rolling Code 2.
-- Copies of one command (direct, repeater, or second hub) will share the same destination (or group numbers), Logical Source ID, payload, and Rolling Code 2.
+- Copies of one command (direct, repeater, or second hub) will share the same destination (or group numbers), Logical Source ID, payload, and Rolling Code 2. The library provides `Packet::isSameCommand(const Packet& other)` to match these duplicate copies across transmissions.
 
 #### Broadcast address
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |

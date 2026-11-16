@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <variant>
+#include <vector>
 
 // Define packet types
 enum class PacketType {
@@ -31,14 +32,28 @@ struct Field {
   FieldType type;
   bool hasValue;
   std::variant<std::monostate, uint8_t, uint16_t> value;
+
+  bool operator==(const Field& o) const {
+    return identifier == o.identifier &&
+           type == o.type &&
+           hasValue == o.hasValue &&
+           value == o.value;
+  }
+  bool operator!=(const Field& o) const { return !(*this == o); }
 };
 
 struct FieldsParameters {
   std::vector<Field> fields;
+
+  bool operator==(const FieldsParameters& o) const { return fields == o.fields; }
+  bool operator!=(const FieldsParameters& o) const { return !(*this == o); }
 };
 
 struct SceneParameters {
   uint8_t sceneID;
+
+  bool operator==(const SceneParameters& o) const { return sceneID == o.sceneID; }
+  bool operator!=(const SceneParameters& o) const { return !(*this == o); }
 };
 
 using ActivateSceneParameters = SceneParameters;
@@ -48,16 +63,29 @@ using PacketParameters = std::variant<std::monostate, FieldsParameters, ScenePar
 
 struct BroadcastHeader {
   uint16_t source;
+
+  bool operator==(const BroadcastHeader& o) const { return source == o.source; }
+  bool operator!=(const BroadcastHeader& o) const { return !(*this == o); }
 };
 
 struct UnicastHeader {
   uint16_t source;
   uint16_t destination;
+
+  bool operator==(const UnicastHeader& o) const {
+    return source == o.source && destination == o.destination;
+  }
+  bool operator!=(const UnicastHeader& o) const { return !(*this == o); }
 };
 
 struct GroupsHeader {
   uint16_t source;
   std::vector<uint8_t> groups;
+
+  bool operator==(const GroupsHeader& o) const {
+    return source == o.source && groups == o.groups;
+  }
+  bool operator!=(const GroupsHeader& o) const { return !(*this == o); }
 };
 
 using PacketHeader = std::variant<BroadcastHeader, UnicastHeader, GroupsHeader>;
@@ -71,6 +99,13 @@ struct Packet {
   uint8_t rollingCode2;
   uint16_t physicalSource = 0;
   bool repeated = false;
+
+  bool isSameCommand(const Packet& other) const {
+    return rollingCode2 == other.rollingCode2 &&
+           type == other.type &&
+           header == other.header &&
+           parameters == other.parameters;
+  }
 };
 
 
