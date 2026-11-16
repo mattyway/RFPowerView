@@ -77,9 +77,17 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
         std::vector<Field> fields;
         parseFields(buffer, dataOffset + 2, fields);
         packet.parameters = FieldsParameters{fields};
-    } else if (buffer[dataOffset + 0] == 0x53 && buffer[dataOffset + 1] == 0x47) {
-        packet.type = PacketType::ACTIVATE_SCENE;
-        packet.parameters = ActivateSceneParameters{buffer[dataOffset + 2]};
+    } else if (buffer[dataOffset + 0] == 0x53) {
+        if (buffer[dataOffset + 1] == 0x47) {
+            packet.type = PacketType::ACTIVATE_SCENE;
+        } else if (buffer[dataOffset + 1] == 0x43) {
+            packet.type = PacketType::STORE_SCENE;
+        } else {
+            packet.type = PacketType::UNKNOWN;
+            packet.parameters = std::monostate{};
+            return false;
+        }
+        packet.parameters = SceneParameters{buffer[dataOffset + 2]};
     } else {
         packet.type = PacketType::UNKNOWN;
         packet.parameters = std::monostate{};

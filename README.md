@@ -13,6 +13,7 @@ Library for sending and receiving PowerView packets so that blinds can be contro
 - Query position
 - Query battery level
 - Activate scene
+- Store scene
 
 ## Code Sample
 
@@ -113,7 +114,7 @@ All 16-bit device IDs (`Physical Source ID`, `Logical Source ID`, and `Destinati
 - **Repeaters**: Repeaters have their own 16-bit IDs. When retransmitting a packet, a repeater inserts its own ID into `Physical Source ID` while preserving the originating device's `Logical Source ID`.
 
 ### Payload
-This section begins at the next byte following the variable length address section. I've observed two types of payloads: simple and "fields".
+This section begins at the next byte following the variable length address section. I've observed three types of payloads: simple, scene, and "fields".
 
 ### Simple payload
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
@@ -143,6 +144,15 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | 3 (if length=4) | 16 | Field Value | The value of the field, little-endian (low byte first) | `0x0000`-`0xFFFF` |
 
 Note: 16-bit field values are little-endian, eg. field `0421504001` has the value `0x0140`.
+
+#### Scene payload
+| Byte Offset | Size (Bits) | Name | Description | Valid Values |
+|---|---|---|---|---|
+| 0 | 8 | Packet Type | Indicates the payload is a scene command | `0x53` |
+| 1 | 8 | Command | What scene action to perform | `0x47` (Activate Scene), `0x43` (Store Scene) |
+| 2 | 8 | Scene ID | The ID of the scene | `0x00`-`0xFF` |
+
+Note: `0x47` (Activate Scene) is typically broadcast by the hub to trigger all blinds assigned to a scene. `0x43` (Store Scene) is sent unicast by the hub to individual blinds when configuring a scene.
 
 ### Checksum
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |

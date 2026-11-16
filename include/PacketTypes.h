@@ -15,6 +15,7 @@ enum class PacketType {
   FIELDS,
   FIELD_COMMAND,
   ACTIVATE_SCENE,
+  STORE_SCENE,
   UNKNOWN
 };
 
@@ -36,11 +37,14 @@ struct FieldsParameters {
   std::vector<Field> fields;
 };
 
-struct ActivateSceneParameters {
+struct SceneParameters {
   uint8_t sceneID;
 };
 
-using PacketParameters = std::variant<std::monostate, FieldsParameters, ActivateSceneParameters>;
+using ActivateSceneParameters = SceneParameters;
+using StoreSceneParameters = SceneParameters;
+
+using PacketParameters = std::variant<std::monostate, FieldsParameters, SceneParameters>;
 
 struct BroadcastHeader {
   uint16_t source;

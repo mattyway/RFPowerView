@@ -97,14 +97,15 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       setFieldsData(buffer, dataOffset + 2, parameters);
       break;
     }
-    case PacketType::ACTIVATE_SCENE: {
-      if (!std::holds_alternative<ActivateSceneParameters>(packet->parameters)) {
+    case PacketType::ACTIVATE_SCENE:
+    case PacketType::STORE_SCENE: {
+      if (!std::holds_alternative<SceneParameters>(packet->parameters)) {
         return false;
       }
-      ActivateSceneParameters parameters = std::get<ActivateSceneParameters>(packet->parameters);
+      SceneParameters parameters = std::get<SceneParameters>(packet->parameters);
       setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x53;
-      buffer[dataOffset + 1] = 0x47;
+      buffer[dataOffset + 1] = (packet->type == PacketType::ACTIVATE_SCENE) ? 0x47 : 0x43;
       buffer[dataOffset + 2] = parameters.sceneID;
       break;
     }

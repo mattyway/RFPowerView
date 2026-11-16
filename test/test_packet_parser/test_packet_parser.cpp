@@ -181,6 +181,23 @@ void test_parse_activate_scene()
   delete[] packet_data;
 }
 
+void test_parse_store_scene()
+{
+  const uint8_t* packet_data = hex_string_to_array("C011000529FFFF00008605B94EF1000053431B");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::STORE_SCENE);
+
+  auto parameters = std::get<StoreSceneParameters>(packet.parameters);
+
+  TEST_ASSERT_EQUAL_HEX8(0x1B, parameters.sceneID);
+
+  delete[] packet_data;
+}
+
 void test_parse_fields()
 {
   const uint8_t* packet_data = hex_string_to_array("C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3");
@@ -321,6 +338,7 @@ int runUnityTests(void)
   RUN_TEST(test_unicast_destination_address);
   RUN_TEST(test_broadcast_source_address);
   RUN_TEST(test_parse_activate_scene);
+  RUN_TEST(test_parse_store_scene);
   RUN_TEST(test_parse_fields);
   RUN_TEST(test_parse_fields_data_uint16);
   RUN_TEST(test_parse_fields_data_uint8);

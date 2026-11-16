@@ -113,6 +113,32 @@ void test_fill_activate_scene()
   delete[] expected_data;
 }
 
+void test_fill_store_scene()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  auto header = UnicastHeader {};
+  header.destination = 0x4EF1;
+  header.source = 0x0000;
+  packet.header = header;
+  packet.type = PacketType::STORE_SCENE;
+  auto parameters = StoreSceneParameters {};
+  parameters.sceneID = 0x1B;
+  packet.parameters = parameters;
+  packet.rollingCode1 = 0x29;
+  packet.rollingCode2 = 0xB9;
+
+  run_fill_test(packet, packet_data);
+
+  TEST_ASSERT_EQUAL_HEX8(0xC0, packet_data[0]);
+  TEST_ASSERT_EQUAL_HEX8(0x11, packet_data[1]);
+  TEST_ASSERT_EQUAL_HEX8(0x53, packet_data[16]);
+  TEST_ASSERT_EQUAL_HEX8(0x43, packet_data[17]);
+  TEST_ASSERT_EQUAL_HEX8(0x1B, packet_data[18]);
+  TEST_ASSERT_TRUE(PacketCRC(0x2EC8).check(packet_data));
+}
+
 void test_fill_multiple_groups()
 {
   uint8_t packet_data[32];
@@ -310,6 +336,7 @@ int runUnityTests(void)
   RUN_TEST(test_fill_groups_close);
   RUN_TEST(test_fill_groups_open);
   RUN_TEST(test_fill_activate_scene);
+  RUN_TEST(test_fill_store_scene);
   RUN_TEST(test_fill_multiple_groups);
   RUN_TEST(test_fill_unicast_stop);
   RUN_TEST(test_fill_unicast_close);
