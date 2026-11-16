@@ -64,13 +64,20 @@ A PowerView packet consists of a header (which contains a variable length addres
 | 1 | 8 | Length | Specifies how many bytes of header and data come after this byte (excludes checksum bytes). | `0x0A` - `0x1D` |
 | 2 | 8 | Unknown | Could indicate the type of sender | `0x00` (hub, remote, repeater, or moving blind), `0x10` (blind at rest) |
 | 3 | 8 | Fixed | This byte is always the same. | `0x05` |
-| 4 | 8 | Rolling Code 1 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
+| 4 | 8 | Rolling Code 1 | Set by the transmitting physical device (`physicalSource`). Originating devices (such as the hub) typically increment this for each new command, while repeaters replace it with their own transmission counter. All copies in a burst from the same physical device share this value. | `0x00`-`0xFF` |
 | 5 | 16 | Fixed | These two bytes are always the same. | `0xFFFF` |
 | 7 | 16 | Physical Source ID | The ID of the device that actually transmitted this copy (a repeater when relayed) | `0x0000`-`0xFFFF` |
 | 9 | 8 | Repeat Flag | Indicates if the packet was retransmitted by a repeater | `0x86` (direct), `0x85` (relayed by repeater) |
 | 10 | 8 | Address Type | Indicates which type of address this packet is using. | `0x04` (Broadcast), `0x05` (Unicast), `0x06` (Groups) |
-| 11 | 8 | Rolling Code 2 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
+| 11 | 8 | Rolling Code 2 | Set by the originating logical sender (`logicalSource`) as a per-command identifier. Originating devices (such as the hub) typically increment this for each new command. Repeaters preserve this value unchanged. | `0x00`-`0xFF` |
 | 12 | Varies | Address | This section is a variable length. | Broadcast, Unicast, or Groups section (see next section) |
+
+Note on rolling codes and relayed copies:
+- Originating devices generate a pair of rolling codes for each command or transaction. While the hub increments both sequentially by `0x01`, pebble remotes have been observed generating values that appear pseudorandom rather than sequential counters.
+- **Rolling Code 1** tracks the physical transmitter: repeaters substitute their own counter while preserving payload and address.
+- **Rolling Code 2** tracks the logical command: repeaters (and relaying secondary hubs) leave it unchanged.
+- When a secondary PowerView hub relays commands, its copy keeps Physical Source ID `0x0000` and direct flag `0x86` in byte 9, while using its own Rolling Code 1 and preserving Rolling Code 2.
+- Copies of one command (direct, repeater, or second hub) will share the same destination (or group numbers), Logical Source ID, payload, and Rolling Code 2.
 
 #### Broadcast address
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
