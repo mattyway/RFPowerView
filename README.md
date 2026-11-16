@@ -124,7 +124,9 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 | 1 | 8 | Field Mode | Indicates how value should be used | `0x3F` (fetch), `0x40` (set), `0x21` (value) |
 | 2 | 8 | Field ID | The field ID | `0x00`-`0xFF`, eg. `0x50` is Position, `0x42` is Battery level |
 | 3 (if length=3) | 8 | Field Value | The value of the field | `0x00`-`0xFF` |
-| 3 (if length=4) | 16 | Field Value | The value of the field | `0x0000`-`0xFFFF` |
+| 3 (if length=4) | 16 | Field Value | The value of the field, little-endian (low byte first) | `0x0000`-`0xFFFF` |
+
+Note: 16-bit field values are little-endian, eg. field `0421504001` has the value `0x0140`.
 
 ### Checksum
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
@@ -188,7 +190,7 @@ C0151005E0FFFF4EF186051A00004EF1215A04215040016670
 | 11 | Rolling Code 2 | `0x1A` |  |
 | 12 | Destination ID | `0x0000` | ID of hub |
 | 14 | Logical Source ID | `0x4EF1` | ID of blind |
-| 18 | Field 1 | `0421504001` | Field of 4 bytes, Mode = `0x21` (value), ID = `0x50` (position), Value = `0x4001` |
+| 18 | Field 1 | `0421504001` | Field of 4 bytes, Mode = `0x21` (value), ID = `0x50` (position), Value = `0x0140` (little-endian) |
 | 23 | Checksum  | `0x6670` |  |
 
 
