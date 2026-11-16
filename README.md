@@ -62,7 +62,7 @@ A PowerView packet consists of a header (which contains a variable length addres
 |---|---|---|---|---|
 | 0 | 8 | ID Byte | Identifies the start of a new packet. | `0xC0` |
 | 1 | 8 | Length | Specifies how many bytes of header and data come after this byte (excludes checksum bytes). | `0x0A` - `0x1D` |
-| 2 | 8 | Unknown | Could indicate the type of sender | `0x00` (from hub or remote), `0x01` (from blind) |
+| 2 | 8 | Unknown | Could indicate the type of sender | `0x00` (hub, remote, repeater, or moving blind), `0x10` (blind at rest) |
 | 3 | 8 | Fixed | This byte is always the same. | `0x05` |
 | 4 | 8 | Rolling Code 1 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
 | 5 | 16 | Fixed | These two bytes are always the same. | `0xFFFF` |
