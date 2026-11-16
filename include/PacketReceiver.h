@@ -5,7 +5,7 @@
 
 #include <functional>
 #include <RF24.h>
-#include <CircularBuffer.h>
+#include <CircularBuffer.hpp>
 #include "PacketCRC.h"
 
 #define BUFFER_SIZE 32
