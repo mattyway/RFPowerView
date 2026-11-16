@@ -274,6 +274,35 @@ void test_fill_fields_set()
   delete[] expected_data;
 }
 
+void test_fill_repeated_packet()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  auto header = UnicastHeader {};
+  header.source = 0x0000;
+  header.destination = 0x4EF1;
+  packet.header = header;
+  packet.type = PacketType::FIELD_COMMAND;
+  auto parameters = FieldsParameters {};
+  parameters.fields.push_back(Field{0x50, FieldType::FETCH, false, std::monostate{}});
+  parameters.fields.push_back(Field{0x4D, FieldType::FETCH, false, std::monostate{}});
+  parameters.fields.push_back(Field{0x54, FieldType::FETCH, false, std::monostate{}});
+  packet.parameters = parameters;
+  packet.rollingCode1 = 0x92;
+  packet.rollingCode2 = 0x4E;
+  packet.physicalSource = 0x72CB;
+  packet.repeated = true;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3");
+
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 29);
+
+  delete[] expected_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -287,6 +316,7 @@ int runUnityTests(void)
   RUN_TEST(test_fill_unicast_open);
   RUN_TEST(test_fill_fields_fetch);
   RUN_TEST(test_fill_fields_set);
+  RUN_TEST(test_fill_repeated_packet);
   return UNITY_END();
 }
 

@@ -17,13 +17,13 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   if (std::holds_alternative<BroadcastHeader>(packet->header)) {
     setProtocolVersion(buffer, 0x04);
     auto header = std::get<BroadcastHeader>(packet->header);
-    setSourceAddress(buffer, 12, header.source);
+    setSourceAddress(buffer, 12, header.source, packet->physicalSource);
     dataOffset = 14;
   } else if (std::holds_alternative<UnicastHeader>(packet->header)) {
     setProtocolVersion(buffer, 0x05);
     auto header = std::get<UnicastHeader>(packet->header);
     setDestinationAddress(buffer, 12, header.destination);
-    setSourceAddress(buffer, 14, header.source);
+    setSourceAddress(buffer, 14, header.source, packet->physicalSource);
     dataOffset = 16;
   } else if (std::holds_alternative<GroupsHeader>(packet->header)) {
     setProtocolVersion(buffer, 0x06);
@@ -34,7 +34,7 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       groupsOffset++;
     }
     buffer[groupsOffset] = 0x00;
-    setSourceAddress(buffer, groupsOffset + 1, header.source);
+    setSourceAddress(buffer, groupsOffset + 1, header.source, packet->physicalSource);
     dataOffset = groupsOffset + 3;
   }
 
@@ -112,6 +112,7 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       return false;
   }
 
+  setRepeatFlag(buffer, packet->repeated);
   setRollingCodes(buffer, packet->rollingCode1, packet->rollingCode2);
   calculateCRC(buffer);
 
@@ -167,18 +168,21 @@ void BufferFiller::setConstants(uint8_t *buffer) {
 
   buffer[5] = 0xFF;  // Constant
   buffer[6] = 0xFF;  // Constant
-
-  buffer[9] = 0x86;  // Not sure, seems to be 0x85 if a packet is retransmitted by a repeater
 }
 
-void BufferFiller::setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t sourceID) {
-  // Physical source address (could be the address of a repeater when receiving a packet)
-  buffer[7] = (uint8_t)((sourceID & 0xFF00) >> 8);
-  buffer[8] = (uint8_t)(sourceID & 0x00FF);
+void BufferFiller::setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t sourceID, uint16_t physicalSource) {
+  // Physical source address (could be the address of a repeater)
+  uint16_t physicalID = (physicalSource != 0) ? physicalSource : sourceID;
+  buffer[7] = (uint8_t)((physicalID & 0xFF00) >> 8);
+  buffer[8] = (uint8_t)(physicalID & 0x00FF);
 
   // Logical source address (usually the same as the physical source address)
   buffer[offset + 0] = (uint8_t)((sourceID & 0xFF00) >> 8);
   buffer[offset + 1] = (uint8_t)(sourceID & 0x00FF);
+}
+
+void BufferFiller::setRepeatFlag(uint8_t *buffer, bool repeated) {
+  buffer[9] = repeated ? 0x85 : 0x86;
 }
 
 void BufferFiller::setDestinationAddress(uint8_t *buffer, uint8_t offset, uint16_t targetID) {

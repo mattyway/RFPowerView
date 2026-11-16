@@ -65,6 +65,8 @@ struct Packet {
   PacketParameters parameters;
   uint8_t rollingCode1;
   uint8_t rollingCode2;
+  uint16_t physicalSource = 0;
+  bool repeated = false;
 };
 
 

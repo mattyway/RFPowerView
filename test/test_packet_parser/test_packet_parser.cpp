@@ -265,6 +265,48 @@ void test_parse_fields_multiple_groups()
   delete[] packet_data;
 }
 
+void test_physical_source_from_repeater()
+{
+  const uint8_t* packet_data = hex_string_to_array("C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_EQUAL_HEX16(0x72CB, packet.physicalSource);
+  TEST_ASSERT_TRUE_MESSAGE(packet.repeated, "Packet should be marked as repeated.");
+
+  delete[] packet_data;
+}
+
+void test_physical_source_from_hub()
+{
+  const uint8_t* packet_data = hex_string_to_array("C00F0005A1FFFF00008604FF000053471B446B");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_EQUAL_HEX16(0x0000, packet.physicalSource);
+  TEST_ASSERT_FALSE_MESSAGE(packet.repeated, "Packet should not be marked as repeated.");
+
+  delete[] packet_data;
+}
+
+void test_physical_source_from_remote()
+{
+  const uint8_t* packet_data = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_EQUAL_HEX16(0x369E, packet.physicalSource);
+  TEST_ASSERT_FALSE_MESSAGE(packet.repeated, "Packet should not be marked as repeated.");
+
+  delete[] packet_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -283,6 +325,9 @@ int runUnityTests(void)
   RUN_TEST(test_parse_fields_data_uint16);
   RUN_TEST(test_parse_fields_data_uint8);
   RUN_TEST(test_parse_fields_multiple_groups);
+  RUN_TEST(test_physical_source_from_repeater);
+  RUN_TEST(test_physical_source_from_hub);
+  RUN_TEST(test_physical_source_from_remote);
   return UNITY_END();
 }
 

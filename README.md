@@ -66,8 +66,8 @@ A PowerView packet consists of a header (which contains a variable length addres
 | 3 | 8 | Fixed | This byte is always the same. | `0x05` |
 | 4 | 8 | Rolling Code 1 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
 | 5 | 16 | Fixed | These two bytes are always the same. | `0xFFFF` |
-| 7 | 16 | Physical Source ID | The ID of device that actually sent the packet (can be different to Logical Source ID when a repeater is being used) | `0x0000`-`0xFFFF` |
-| 9 | 8 | Unknown | This byte might indicate if the packet was retransmitted by a repeater | `0x86` (when sent from hub or remote), `0x85` (when sent from repeater) |
+| 7 | 16 | Physical Source ID | The ID of the device that actually transmitted this copy (a repeater when relayed) | `0x0000`-`0xFFFF` |
+| 9 | 8 | Repeat Flag | Indicates if the packet was retransmitted by a repeater | `0x86` (direct), `0x85` (relayed by repeater) |
 | 10 | 8 | Address Type | Indicates which type of address this packet is using. | `0x04` (Broadcast), `0x05` (Unicast), `0x06` (Groups) |
 | 11 | 8 | Rolling Code 2 | This byte is incremented by 0x01 each time a packet is sent. | `0x00`-`0xFF` |
 | 12 | Varies | Address | This section is a variable length. | Broadcast, Unicast, or Groups section (see next section) |
@@ -148,6 +148,7 @@ C01100056CFFFF369E86063C0400369E525500B988
 | 1 | Length | `0x11` |  |
 | 4 | Rolling Code 1 | `0x6C` |  |
 | 7 | Physical Source ID | `0x369E` | ID of pebble remote |
+| 9 | Repeat Flag | `0x86` | Direct transmission |
 | 10 | Address type | `0x06` | Using Groups address type |
 | 11 | Rolling Code 2 | `0x3C` |  |
 | 12 | Groups | 4 | Only a single group specified |
@@ -166,6 +167,7 @@ C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3
 | 1 | Length | `0x19` |  |
 | 4 | Rolling Code 1 | `0x92` |  |
 | 7 | Physical Source ID | `0x72CB` | ID of repeater |
+| 9 | Repeat Flag | `0x85` | Packet retransmitted by repeater |
 | 10 | Address type | `0x05` | Using Unicast address type |
 | 11 | Rolling Code 2 | `0x4E` |  |
 | 12 | Destination ID | `0x4EF1` | ID of blind |
@@ -186,6 +188,7 @@ C0151005E0FFFF4EF186051A00004EF1215A04215040016670
 | 1 | Length | `0x15` |  |
 | 4 | Rolling Code 1 | `0xE0` |  |
 | 7 | Physical Source ID | `0x4EF1` | ID of blind |
+| 9 | Repeat Flag | `0x86` | Direct transmission |
 | 10 | Address type | `0x05` | Using Unicast address type |
 | 11 | Rolling Code 2 | `0x1A` |  |
 | 12 | Destination ID | `0x0000` | ID of hub |
@@ -205,6 +208,7 @@ C014100558FFFF4EF18605C100004EF1215A0321429DEC23
 | 1 | Length | `0x14` |  |
 | 4 | Rolling Code 1 | `0x58` |  |
 | 7 | Physical Source ID | `0x4EF1` | ID of blind |
+| 9 | Repeat Flag | `0x86` | Direct transmission |
 | 10 | Address type | `0x05` | Using Unicast address type |
 | 11 | Rolling Code 2 | `0xC1` |  |
 | 12 | Destination ID | `0x0000` | ID of hub |
@@ -222,6 +226,7 @@ C015000529FFFF00008605B94EF100003F5A044050FFFF286B
 | 1 | Length | `0x15` |  |
 | 4 | Rolling Code 1 | `0x29` |  |
 | 7 | Physical Source ID | `0x0000` | ID of hub |
+| 9 | Repeat Flag | `0x86` | Direct transmission |
 | 10 | Address type | `0x05` | Using Unicast address type |
 | 11 | Rolling Code 2 | `0xB9` |  |
 | 12 | Destination ID | `0x4EF1` | ID of blind |
@@ -240,6 +245,7 @@ C00F0005A1FFFF00008604FF000053471B446B
 | 1 | Length | `0x0F` |  |
 | 4 | Rolling Code 1 | `0xA1` |  |
 | 7 | Physical Source ID | `0x0000` | ID of hub |
+| 9 | Repeat Flag | `0x86` | Direct transmission |
 | 10 | Address type | `0x04` | Using Broadcast address type |
 | 11 | Rolling Code 2 | `0xFF` |  |
 | 12 | Logical Source ID | `0x0000` | ID of hub |

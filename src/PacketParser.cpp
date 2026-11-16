@@ -46,6 +46,9 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     packet.rollingCode1 = buffer[4];
     packet.rollingCode2 = buffer[11];
 
+    packet.physicalSource = (uint16_t)(buffer[7] << 8 | buffer[8]);
+    packet.repeated = (buffer[9] == 0x85);
+
     if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x53) {
         packet.type = PacketType::STOP;
         packet.parameters = std::monostate{};
