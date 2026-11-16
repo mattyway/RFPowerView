@@ -1,0 +1,17 @@
+{
+  "name": "RFPowerView Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "platformio.platformio-ide"
+      ],
+      "settings": {
+        "platformio-ide.useBuiltinPIOCore": false
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}
