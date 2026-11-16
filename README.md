@@ -26,7 +26,7 @@ Library for sending and receiving PowerView packets so that blinds can be contro
 #define RF_IRQ_PIN  4
 
 // Copied from Powerview Hub userdata API. Open http://POWERVIEW_HUB_IP_ADDRESS/api/userdata/ and find the field labeled "rfID"
-#define RF_ID       0x2ECB
+#define RF_ID       0x2EC8
 
 RFPowerView powerView(RF_CE_PIN, RF_CS_PIN, RF_IRQ_PIN, RF_ID);
 
@@ -60,7 +60,7 @@ A PowerView packet consists of a header (which contains a variable length addres
 
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
-| 0 | 8 | ID Byte | Identifies the start of a new packet. | `0xCO` |
+| 0 | 8 | ID Byte | Identifies the start of a new packet. | `0xC0` |
 | 1 | 8 | Length | Specifies how many bytes of header and data come after this byte (excludes checksum bytes). | `0x0A` - `0x1D` |
 | 2 | 8 | Unknown | Could indicate the type of sender | `0x00` (from hub or remote), `0x01` (from blind) |
 | 3 | 8 | Fixed | This byte is always the same. | `0x05` |
@@ -129,7 +129,9 @@ Note: this type of payload is used by the hub. If sent to a blind without values
 ### Checksum
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
-| 0 | 16 | Checksum | A CRC16 checksum of the packet data | `0x0000`-`0xFFFF` |
+| 0 | 16 | Checksum | A CRC16 checksum of the packet data, high byte first | `0x0000`-`0xFFFF` |
+
+The checksum is CRC-16 with polynomial `0x755B`, initial value `0xFFFF`, no reflection and no final XOR. It is calculated over the network's 2-byte radio address (the hub's `rfID`, high byte first) followed by packet bytes 0 to L+1 (everything except the checksum). The `rfID` itself is not transmitted.
 
 ## Sample Packets
 

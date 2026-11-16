@@ -17,7 +17,7 @@
 
 class PacketReceiver {
 public:
-    PacketReceiver(RF24 *radio);
+    PacketReceiver(RF24 *radio, uint16_t rfID);
     ~PacketReceiver();
 
     void loop();

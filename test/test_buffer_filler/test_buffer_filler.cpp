@@ -13,7 +13,7 @@ void tearDown()
 
 void run_fill_test(const Packet &packet, uint8_t *packet_data)
 {
-  BufferFiller bufferFiller;
+  BufferFiller bufferFiller(0x2EC8);
 
   bool result = bufferFiller.fill(packet_data, &packet);
 

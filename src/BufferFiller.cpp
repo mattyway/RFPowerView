@@ -1,6 +1,7 @@
 #include "BufferFiller.h"
 
-BufferFiller::BufferFiller()
+BufferFiller::BufferFiller(uint16_t rfID) :
+    packetCRC(rfID)
 {
 }
 

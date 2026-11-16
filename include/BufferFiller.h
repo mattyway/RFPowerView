@@ -7,7 +7,7 @@
 
 class BufferFiller {
 public:
-    BufferFiller();
+    explicit BufferFiller(uint16_t rfID);
     ~BufferFiller();
 
     bool fill(uint8_t *buffer, const Packet* packet);

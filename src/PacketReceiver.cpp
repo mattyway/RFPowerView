@@ -1,6 +1,6 @@
 #include "PacketReceiver.h"
 
-PacketReceiver::PacketReceiver(RF24 *radio) : radio(radio) {
+PacketReceiver::PacketReceiver(RF24 *radio, uint16_t rfID) : radio(radio), packetCRC(rfID) {
     for (int i = 0; i < TOTAL_BUFFER_COUNT; i++) {
         if (!freeBuffers.isFull()) {
             freeBuffers.push(buffers[i]);

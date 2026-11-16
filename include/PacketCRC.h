@@ -5,13 +5,14 @@
 
 class PacketCRC {
 public:
-    PacketCRC();
+    explicit PacketCRC(uint16_t rfID);
     ~PacketCRC();
 
     // Method to calculate CRC for a packet
     bool check(const uint8_t* packet);
     uint16_t calculate(const uint8_t* packet);
 private:
+    uint16_t rfID;
     CRC16 crc;
 };
 

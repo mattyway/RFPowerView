@@ -1,6 +1,7 @@
 #include "PacketCRC.h"
 
-PacketCRC::PacketCRC() : crc(CRC16(0x755B, 0xF48B, 0x0000, false, false)) {
+// The checksum covers the 2 byte radio address (rfID) followed by the packet data
+PacketCRC::PacketCRC(uint16_t rfID) : rfID(rfID), crc(CRC16(0x755B, 0xFFFF, 0x0000, false, false)) {
   // Constructor implementation (if needed)
 }
 
@@ -28,6 +29,8 @@ bool PacketCRC::check(const uint8_t* packet) {
 
 uint16_t PacketCRC::calculate(const uint8_t* packet) {
   crc.restart();
+  crc.add((uint8_t)(rfID >> 8));
+  crc.add((uint8_t)(rfID & 0xFF));
   uint8_t length = packet[1];
   crc.add(packet, length + 2);
   return crc.calc();
