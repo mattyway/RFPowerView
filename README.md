@@ -90,11 +90,11 @@ Note: this type of address is used when a hub wants to communicate with a specif
 #### Groups address
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
-| 0-5 | 8 | Group Number | Devices assigned to the specified group numbers should process the packet. | `0x01`-`0x06` |
+| 0-5 | 8 | Group Number | Devices assigned to the specified group numbers should process the packet. | `0x01`-`0x06` (could be higher values when sent from hub) |
 | n | 8 | Terminator | Marker to stop processing group numbers | `0x00` |
 | n+1 | 16 | Logical Source ID | The ID of device where the packet originated | `0x0000`-`0xFFFF` |
 
-Note: this type of address is used by pebble remotes. The Group Number corresponds to the the numbered buttons on the pebble remote. When multiple group numbers are included, generally they are in ascending order.
+Note: this type of address is used by pebble remotes. The Group Number corresponds to the the numbered buttons on the pebble remote. When multiple group numbers are included, generally they are in ascending order. When sent from a hub (with Logical Source ID `0x0000`), group numbers can be higher values (such as `0x20` for room-wide commands).
 
 #### Device IDs and Roles
 
