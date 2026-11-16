@@ -243,6 +243,28 @@ void test_parse_fields_data_uint8()
   delete[] packet_data;
 }
 
+void test_parse_fields_multiple_groups()
+{
+  const uint8_t* packet_data = hex_string_to_array("C01600056CFFFF369E86063C040500369E3F5A04405040012FCC");
+
+  Packet packet;
+
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::FIELD_COMMAND);
+
+  auto parameters = std::get<FieldsParameters>(packet.parameters);
+
+  TEST_ASSERT_EQUAL_INT(1, parameters.fields.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.fields[0].identifier);
+  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].type == FieldType::SET, "Field 0 should be a set field.");
+  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should have a value.");
+  TEST_ASSERT_EQUAL_HEX16(0x0140, std::get<uint16_t>(parameters.fields[0].value));
+
+  delete[] packet_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -260,6 +282,7 @@ int runUnityTests(void)
   RUN_TEST(test_parse_fields);
   RUN_TEST(test_parse_fields_data_uint16);
   RUN_TEST(test_parse_fields_data_uint8);
+  RUN_TEST(test_parse_fields_multiple_groups);
   return UNITY_END();
 }
 

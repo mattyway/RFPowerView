@@ -67,12 +67,12 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x5A) { 
         packet.type = PacketType::FIELDS;
         std::vector<Field> fields;
-        parseFields(buffer, fields);
+        parseFields(buffer, dataOffset + 2, fields);
         packet.parameters = FieldsParameters{fields};
     } else if (buffer[dataOffset + 0] == 0x3F && buffer[dataOffset + 1] == 0x5A) {
         packet.type = PacketType::FIELD_COMMAND;
         std::vector<Field> fields;
-        parseFields(buffer, fields);
+        parseFields(buffer, dataOffset + 2, fields);
         packet.parameters = FieldsParameters{fields};
     } else if (buffer[dataOffset + 0] == 0x53 && buffer[dataOffset + 1] == 0x47) {
         packet.type = PacketType::ACTIVATE_SCENE;
@@ -86,10 +86,9 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     return true;
 }
 
-bool PacketParser::parseFields(const uint8_t *buffer, std::vector<Field>& fields) {
+bool PacketParser::parseFields(const uint8_t *buffer, uint8_t offset, std::vector<Field>& fields) {
     uint8_t length = buffer[1] + 2;
 
-    uint8_t offset = 18;
     while (offset < length) {
         uint8_t fieldLength = buffer[offset];
         if (offset + fieldLength >= length) {
