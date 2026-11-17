@@ -26,7 +26,7 @@ Library for sending and receiving PowerView packets so that blinds can be contro
 #define RF_CS_PIN   15
 #define RF_IRQ_PIN  4
 
-// Copied from Powerview Hub userdata API. Open http://POWERVIEW_HUB_IP_ADDRESS/api/userdata/ and find the field labeled "rfID"
+// Copied from PowerView Hub userdata API. Open http://POWERVIEW_HUB_IP_ADDRESS/api/userdata/ and find the field labeled "rfID"
 #define RF_ID       0x2EC8
 
 RFPowerView powerView(RF_CE_PIN, RF_CS_PIN, RF_IRQ_PIN, RF_ID);
@@ -102,7 +102,7 @@ Note: this type of address is used when a hub wants to communicate with a specif
 | n | 8 | Terminator | Marker to stop processing group numbers | `0x00` |
 | n+1 | 16 | Logical Source ID | The ID of device where the packet originated | `0x0000`-`0xFFFF` |
 
-Note: this type of address is used by pebble remotes. The Group Number corresponds to the the numbered buttons on the pebble remote. When multiple group numbers are included, generally they are in ascending order. When sent from a hub (with Logical Source ID `0x0000`), group numbers can be higher values (such as `0x20` for room-wide commands).
+Note: this type of address is used by pebble remotes. The Group Number corresponds to the numbered buttons on the pebble remote. When multiple group numbers are included, generally they are in ascending order. When sent from a hub (with Logical Source ID `0x0000`), group numbers can be higher values (such as `0x20` for room-wide commands).
 
 #### Device IDs and Roles
 
@@ -116,25 +116,25 @@ All 16-bit device IDs (`Physical Source ID`, `Logical Source ID`, and `Destinati
 ### Payload
 This section begins at the next byte following the variable length address section. I've observed three types of payloads: simple, scene, and "fields".
 
-### Simple payload
+#### Simple payload
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
 | 0 | 8 | Packet Type | Indicates the payload is a simple command | `0x52` |
 | 1 | 8 | Command | What should the blind do | `0x55` (Open), `0x44` (Close), `0x53` (Stop), `0x52` (Open Slowly), `0x4C` (Close Slowly), `0x48` (Move to saved position) |
 | 2 | 8 | End | Marker to indicate end of data | `0x00` |
 
-Note: this type of payload is used by both the hub and pebble remotes. Used for commands like "Open", "Close", or "Stop"
+Note: this type of payload is used by both the hub and pebble remotes. Used for commands like "Open", "Close", or "Stop".
 
 #### Fields payload
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
-| 0 | 8 | Packet Type | Indicates the payloads contains "fields" | `0x3F` (command), `0x21` (report) |
+| 0 | 8 | Packet Type | Indicates the payload contains "fields" | `0x3F` (command), `0x21` (report) |
 | 1 | 8 | Fixed | This byte is always the same. | `0x5A` |
 | 2 | varies | Field data | This section is a variable length depending on the number of fields the payload contains | Field data (see next section) |
 
 Note: this type of payload is used by the hub. If sent to a blind without values, it will prompt the blind to respond with the value of those fields. If sent to a blind with values, it will prompt the blind to "apply" the value to the fields (eg. by moving to a position). A single payload can contain multiple fields.
 
-#### Field data
+##### Field data
 | Byte Offset | Size (Bits) | Name | Description | Valid Values |
 |---|---|---|---|---|
 | 0 | 8 | Field Length | Indicates how many bytes are in this field | `0x02`-`0x04` |
@@ -178,7 +178,11 @@ C01100056CFFFF369E86063C0400369E525500B988
 | 10 | Address type | `0x06` | Using Groups address type |
 | 11 | Rolling Code 2 | `0x3C` |  |
 | 12 | Groups | 4 | Only a single group specified |
+| 13 | Terminator | `0x00` | Marker to stop processing group numbers |
 | 14 | Logical Source ID | `0x369E` | ID of pebble remote (same as Physical Source ID) |
+| 16 | Packet Type | `0x52` | Simple command |
+| 17 | Command | `0x55` | Open |
+| 18 | End | `0x00` | Marker to indicate end of data |
 | 19 | Checksum | `0xB988` | |
 
 
@@ -275,5 +279,7 @@ C00F0005A1FFFF00008604FF000053471B446B
 | 10 | Address type | `0x04` | Using Broadcast address type |
 | 11 | Rolling Code 2 | `0xFF` |  |
 | 12 | Logical Source ID | `0x0000` | ID of hub |
-| 16 | Scene ID | `1B` |  |
+| 14 | Packet Type | `0x53` | Scene command |
+| 15 | Command | `0x47` | Activate Scene |
+| 16 | Scene ID | `0x1B` |  |
 | 17 | Checksum  | `0x446B` |  |
