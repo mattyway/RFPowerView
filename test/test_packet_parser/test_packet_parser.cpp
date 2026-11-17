@@ -399,6 +399,22 @@ void test_is_same_command_different_destination()
   delete[] group5_data;
 }
 
+void test_parse_sender_type()
+{
+  const uint8_t* remote_packet = hex_string_to_array("C01100056CFFFF369E86063C0400369E525300");
+  const uint8_t* blind_packet = hex_string_to_array("C0151005E0FFFF4EF186051A00004EF1215A04215040016670");
+
+  Packet packet;
+  run_parse_test(remote_packet, packet);
+  TEST_ASSERT_TRUE(packet.senderType == SenderType::STANDARD);
+
+  run_parse_test(blind_packet, packet);
+  TEST_ASSERT_TRUE(packet.senderType == SenderType::BLIND_AT_REST);
+
+  delete[] remote_packet;
+  delete[] blind_packet;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -425,6 +441,7 @@ int runUnityTests(void)
   RUN_TEST(test_is_same_command_different_rolling_code);
   RUN_TEST(test_is_same_command_different_command);
   RUN_TEST(test_is_same_command_different_destination);
+  RUN_TEST(test_parse_sender_type);
   return UNITY_END();
 }
 

@@ -27,6 +27,11 @@ enum class FieldType {
   UNKNOWN
 };
 
+enum class SenderType : uint8_t {
+  STANDARD = 0x00,
+  BLIND_AT_REST = 0x10,
+};
+
 struct Field {
   uint8_t identifier;
   FieldType type;
@@ -99,6 +104,7 @@ struct Packet {
   uint8_t rollingCode2;
   uint16_t physicalSource = 0;
   bool repeated = false;
+  SenderType senderType{SenderType::STANDARD};
 
   bool isSameCommand(const Packet& other) const {
     return rollingCode2 == other.rollingCode2 &&

@@ -11,6 +11,7 @@ BufferFiller::~BufferFiller()
 
 bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   setConstants(buffer);
+  setSenderType(buffer, packet->senderType);
 
   int dataOffset = -1;
 
@@ -163,12 +164,13 @@ void BufferFiller::setPacketSize(uint8_t *buffer, uint8_t dataOffset, uint8_t da
 
 void BufferFiller::setConstants(uint8_t *buffer) {
   buffer[0] = 0xC0;  // Header byte
-
-  buffer[2] = 0x00;  // Constant when sending, can be 0x10 when receiving a packet
   buffer[3] = 0x05;  // Constant
-
   buffer[5] = 0xFF;  // Constant
   buffer[6] = 0xFF;  // Constant
+}
+
+void BufferFiller::setSenderType(uint8_t *buffer, SenderType senderType) {
+  buffer[2] = static_cast<uint8_t>(senderType);
 }
 
 void BufferFiller::setSourceAddress(uint8_t *buffer, uint8_t offset, uint16_t sourceID, uint16_t physicalSource) {

@@ -329,6 +329,26 @@ void test_fill_repeated_packet()
   delete[] expected_data;
 }
 
+void test_fill_sender_type()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  auto header = GroupsHeader {};
+  header.groups = std::vector<uint8_t>();
+  header.groups.push_back(0x04);
+  header.source = 0x369E;
+  packet.header = header;
+  packet.type = PacketType::STOP;
+  packet.rollingCode1 = 0x6C;
+  packet.rollingCode2 = 0x3C;
+  packet.senderType = SenderType::BLIND_AT_REST;
+
+  run_fill_test(packet, packet_data);
+
+  TEST_ASSERT_EQUAL_HEX8(0x10, packet_data[2]);
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -344,6 +364,7 @@ int runUnityTests(void)
   RUN_TEST(test_fill_fields_fetch);
   RUN_TEST(test_fill_fields_set);
   RUN_TEST(test_fill_repeated_packet);
+  RUN_TEST(test_fill_sender_type);
   return UNITY_END();
 }
 
