@@ -24,10 +24,10 @@ private:
     void setRepeatFlag(uint8_t *buffer, bool repeated);
     void setRollingCodes(uint8_t *buffer, uint8_t rollingCode1, uint8_t rollingCode2);
     void setProtocolVersion(uint8_t *buffer, uint8_t);
-    void setPropertiesData(uint8_t *buffer, uint8_t offset, const PropertiesParameters& parameters);
+    void setPropertiesData(uint8_t *buffer, uint8_t offset, const PropertiesPayload& payload);
     void calculateCRC(uint8_t *buffer);
     void incrementRollingCodes();
-    uint8_t calculateTotalPropertiesSize(const PropertiesParameters& parameters);
+    uint8_t calculateTotalPropertiesSize(const PropertiesPayload& payload);
     uint8_t calculatePropertySize(const Property& property);
 };
 

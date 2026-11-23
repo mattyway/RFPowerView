@@ -174,7 +174,7 @@ void test_parse_activate_scene()
 
   run_parse_test(packet_data, packet);
 
-  auto parameters = std::get<ActivateSceneParameters>(packet.parameters);
+  auto parameters = std::get<ActivateScenePayload>(packet.payload);
 
   TEST_ASSERT_EQUAL_HEX8(0x1B, parameters.sceneID);
 
@@ -191,7 +191,7 @@ void test_parse_store_scene()
 
   TEST_ASSERT_TRUE(packet.type == PacketType::STORE_SCENE);
 
-  auto parameters = std::get<StoreSceneParameters>(packet.parameters);
+  auto parameters = std::get<StoreScenePayload>(packet.payload);
 
   TEST_ASSERT_EQUAL_HEX8(0x1B, parameters.sceneID);
 
@@ -208,7 +208,7 @@ void test_parse_properties()
 
   TEST_ASSERT_TRUE(packet.type == PacketType::GET_PROPERTIES);
 
-  auto parameters = std::get<PropertiesParameters>(packet.parameters);
+  auto parameters = std::get<PropertiesPayload>(packet.payload);
 
   TEST_ASSERT_EQUAL_INT(3, parameters.properties.size());
 
@@ -234,7 +234,7 @@ void test_parse_properties_data_uint16()
 
   TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_PROPERTIES);
 
-  auto parameters = std::get<PropertiesParameters>(packet.parameters);
+  auto parameters = std::get<PropertiesPayload>(packet.payload);
 
   TEST_ASSERT_EQUAL_INT(1, parameters.properties.size());
 
@@ -255,7 +255,7 @@ void test_parse_properties_data_uint8()
 
   TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_PROPERTIES);
 
-  auto parameters = std::get<PropertiesParameters>(packet.parameters);
+  auto parameters = std::get<PropertiesPayload>(packet.payload);
 
   TEST_ASSERT_EQUAL_INT(1, parameters.properties.size());
 
@@ -276,7 +276,7 @@ void test_parse_properties_multiple_groups()
 
   TEST_ASSERT_TRUE(packet.type == PacketType::SET_PROPERTIES);
 
-  auto parameters = std::get<PropertiesParameters>(packet.parameters);
+  auto parameters = std::get<PropertiesPayload>(packet.payload);
 
   TEST_ASSERT_EQUAL_INT(1, parameters.properties.size());
 
@@ -436,8 +436,8 @@ void test_parse_blind_firmware_query()
   TEST_ASSERT_EQUAL_HEX8(0xC1, packet.rollingCode1);
   TEST_ASSERT_EQUAL_HEX8(0x6A, packet.rollingCode2);
 
-  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
-  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwarePayload>(packet.payload));
+  auto fw = std::get<FirmwarePayload>(packet.payload);
   TEST_ASSERT_TRUE(fw.target == FirmwareTarget::BLIND_CONTROLLER);
 
   delete[] packet_data;
@@ -460,8 +460,8 @@ void test_parse_blind_firmware_report()
   TEST_ASSERT_EQUAL_HEX8(0x94, packet.rollingCode1);
   TEST_ASSERT_EQUAL_HEX8(0xAB, packet.rollingCode2);
 
-  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
-  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwarePayload>(packet.payload));
+  auto fw = std::get<FirmwarePayload>(packet.payload);
   TEST_ASSERT_TRUE(fw.target == FirmwareTarget::BLIND_CONTROLLER);
   TEST_ASSERT_EQUAL_UINT8(1, fw.major);
   TEST_ASSERT_EQUAL_UINT8(8, fw.minor);
@@ -478,8 +478,8 @@ void test_parse_motor_firmware_query()
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::GET_FIRMWARE);
-  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
-  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwarePayload>(packet.payload));
+  auto fw = std::get<FirmwarePayload>(packet.payload);
   TEST_ASSERT_TRUE(fw.target == FirmwareTarget::MOTOR_CONTROLLER);
 
   delete[] packet_data;
@@ -493,8 +493,8 @@ void test_parse_motor_firmware_report()
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_FIRMWARE);
-  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
-  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwarePayload>(packet.payload));
+  auto fw = std::get<FirmwarePayload>(packet.payload);
   TEST_ASSERT_TRUE(fw.target == FirmwareTarget::MOTOR_CONTROLLER);
   char ascii[5];
   fw.getAscii(ascii);
@@ -514,8 +514,8 @@ void test_parse_compound_query_with_shade_type()
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::GET_PROPERTIES);
-  TEST_ASSERT_TRUE(std::holds_alternative<PropertiesParameters>(packet.parameters));
-  auto params = std::get<PropertiesParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(std::holds_alternative<PropertiesPayload>(packet.payload));
+  auto params = std::get<PropertiesPayload>(packet.payload);
   TEST_ASSERT_EQUAL_UINT32(3, params.properties.size());
 
   TEST_ASSERT_EQUAL_HEX8(0x50, params.properties[0].identifier);

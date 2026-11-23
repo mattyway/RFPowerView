@@ -52,30 +52,30 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
 
     if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x53) {
         packet.type = PacketType::STOP;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x44) {
         packet.type = PacketType::CLOSE;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x55) {
         packet.type = PacketType::OPEN;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x4C) {
         packet.type = PacketType::CLOSE_SLOW;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x52) {
         packet.type = PacketType::OPEN_SLOW;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x48) {
         packet.type = PacketType::MOVE_TO_SAVED_POSITION;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
     } else if (buffer[dataOffset + 0] == 0x3F && buffer[dataOffset + 1] == 0x46) {
         packet.type = PacketType::GET_FIRMWARE;
-        FirmwareParameters fw{};
+        FirmwarePayload fw{};
         fw.target = static_cast<FirmwareTarget>(buffer[dataOffset + 2]);
-        packet.parameters = fw;
+        packet.payload = fw;
     } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x46) {
         packet.type = PacketType::REPORT_FIRMWARE;
-        FirmwareParameters fw{};
+        FirmwarePayload fw{};
         fw.target = static_cast<FirmwareTarget>(buffer[dataOffset + 2]);
         if (buffer[1] >= (dataOffset - 2 + 7)) { // Ensure at least 4 payload data bytes
             uint8_t b0 = buffer[dataOffset + 3];
@@ -86,12 +86,12 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
             fw.minor = b2;
             fw.major = b3;
         }
-        packet.parameters = fw;
+        packet.payload = fw;
     } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x5A) { 
         packet.type = PacketType::REPORT_PROPERTIES;
         std::vector<Property> properties;
         parseProperties(buffer, dataOffset + 2, properties);
-        packet.parameters = PropertiesParameters{properties};
+        packet.payload = PropertiesPayload{properties};
     } else if (buffer[dataOffset + 0] == 0x3F && buffer[dataOffset + 1] == 0x5A) {
         std::vector<Property> properties;
         parseProperties(buffer, dataOffset + 2, properties);
@@ -103,7 +103,7 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
             }
         }
         packet.type = hasSet ? PacketType::SET_PROPERTIES : PacketType::GET_PROPERTIES;
-        packet.parameters = PropertiesParameters{properties};
+        packet.payload = PropertiesPayload{properties};
     } else if (buffer[dataOffset + 0] == 0x53) {
         if (buffer[dataOffset + 1] == 0x47) {
             packet.type = PacketType::ACTIVATE_SCENE;
@@ -111,13 +111,13 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
             packet.type = PacketType::STORE_SCENE;
         } else {
             packet.type = PacketType::UNKNOWN;
-            packet.parameters = std::monostate{};
+            packet.payload = std::monostate{};
             return false;
         }
-        packet.parameters = SceneParameters{buffer[dataOffset + 2]};
+        packet.payload = ScenePayload{buffer[dataOffset + 2]};
     } else {
         packet.type = PacketType::UNKNOWN;
-        packet.parameters = std::monostate{};
+        packet.payload = std::monostate{};
         return false;
     }
 

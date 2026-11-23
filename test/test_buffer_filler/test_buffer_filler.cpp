@@ -98,9 +98,9 @@ void test_fill_activate_scene()
   header.source = 0x0000;
   packet.header = header;
   packet.type = PacketType::ACTIVATE_SCENE;
-  auto parameters = ActivateSceneParameters {};
+  auto parameters = ActivateScenePayload {};
   parameters.sceneID = 0x1B;
-  packet.parameters = parameters;
+  packet.payload = parameters;
   packet.rollingCode1 = 0xA1;
   packet.rollingCode2 = 0xFF;
 
@@ -123,9 +123,9 @@ void test_fill_store_scene()
   header.source = 0x0000;
   packet.header = header;
   packet.type = PacketType::STORE_SCENE;
-  auto parameters = StoreSceneParameters {};
+  auto parameters = StoreScenePayload {};
   parameters.sceneID = 0x1B;
-  packet.parameters = parameters;
+  packet.payload = parameters;
   packet.rollingCode1 = 0x29;
   packet.rollingCode2 = 0xB9;
 
@@ -241,7 +241,7 @@ void test_fill_properties_fetch()
   header.destination = 0x4EF1;
   packet.header = header;
   packet.type = PacketType::GET_PROPERTIES;
-  auto parameters = PropertiesParameters {};
+  auto parameters = PropertiesPayload {};
   auto prop1 = Property {};
   prop1.identifier = 0x50;
   prop1.type = PropertyType::FETCH;
@@ -257,7 +257,7 @@ void test_fill_properties_fetch()
   prop3.type = PropertyType::FETCH;
   prop3.hasValue = false;
   parameters.properties.push_back(prop3);
-  packet.parameters = parameters;
+  packet.payload = parameters;
   packet.rollingCode1 = 0x92;
   packet.rollingCode2 = 0x4E;
 
@@ -280,14 +280,14 @@ void test_fill_properties_set()
   header.destination = 0x4EF1;
   packet.header = header;
   packet.type = PacketType::SET_PROPERTIES;
-  auto parameters = PropertiesParameters {};
+  auto parameters = PropertiesPayload {};
   auto prop1 = Property {};
   prop1.identifier = 0x50;
   prop1.type = PropertyType::SET;
   prop1.hasValue = true;
   prop1.value = (uint16_t)0xFFFF;
   parameters.properties.push_back(prop1);
-  packet.parameters = parameters;
+  packet.payload = parameters;
   packet.rollingCode1 = 0x29;
   packet.rollingCode2 = 0xB9;
 
@@ -310,11 +310,11 @@ void test_fill_repeated_packet()
   header.destination = 0x4EF1;
   packet.header = header;
   packet.type = PacketType::GET_PROPERTIES;
-  auto parameters = PropertiesParameters {};
+  auto parameters = PropertiesPayload {};
   parameters.properties.push_back(Property{0x50, PropertyType::FETCH, false, std::monostate{}});
   parameters.properties.push_back(Property{0x4D, PropertyType::FETCH, false, std::monostate{}});
   parameters.properties.push_back(Property{0x54, PropertyType::FETCH, false, std::monostate{}});
-  packet.parameters = parameters;
+  packet.payload = parameters;
   packet.rollingCode1 = 0x92;
   packet.rollingCode2 = 0x4E;
   packet.physicalSource = 0x72CB;
@@ -356,7 +356,7 @@ void test_fill_firmware_query()
   Packet packet;
   packet.header = UnicastHeader{0x0000, 0x4EF1};
   packet.type = PacketType::GET_FIRMWARE;
-  packet.parameters = FirmwareParameters{FirmwareTarget::BLIND_CONTROLLER};
+  packet.payload = FirmwarePayload{FirmwareTarget::BLIND_CONTROLLER};
   packet.rollingCode1 = 0xC1;
   packet.rollingCode2 = 0x6A;
   packet.repeated = false;
@@ -377,12 +377,12 @@ void test_fill_firmware_report_blind()
   packet.physicalSource = 0x4EF1;
   packet.senderType = SenderType::SHADE;
   packet.type = PacketType::REPORT_FIRMWARE;
-  FirmwareParameters fw;
+  FirmwarePayload fw;
   fw.target = FirmwareTarget::BLIND_CONTROLLER;
   fw.major = 1;
   fw.minor = 8;
   fw.build = 1944;
-  packet.parameters = fw;
+  packet.payload = fw;
   packet.rollingCode1 = 0x94;
   packet.rollingCode2 = 0xAB;
   packet.repeated = false;
@@ -403,13 +403,13 @@ void test_fill_firmware_report_motor()
   packet.physicalSource = 0x4EF1;
   packet.senderType = SenderType::SHADE;
   packet.type = PacketType::REPORT_FIRMWARE;
-  FirmwareParameters fw;
+  FirmwarePayload fw;
   fw.target = FirmwareTarget::MOTOR_CONTROLLER;
   fw.setAscii("2.00");
   TEST_ASSERT_EQUAL_UINT8(48, fw.major);
   TEST_ASSERT_EQUAL_UINT8(48, fw.minor);
   TEST_ASSERT_EQUAL_UINT16(11826, fw.build);
-  packet.parameters = fw;
+  packet.payload = fw;
   packet.rollingCode1 = 0xA0;
   packet.rollingCode2 = 0xB7;
   packet.repeated = false;
@@ -430,11 +430,11 @@ void test_fill_compound_query_with_shade_type()
   packet.type = PacketType::GET_PROPERTIES;
   packet.rollingCode1 = 0xBA;
   packet.rollingCode2 = 0x63;
-  PropertiesParameters properties;
+  PropertiesPayload properties;
   properties.properties.push_back(Property{0x50, PropertyType::FETCH, false, std::monostate{}});
   properties.properties.push_back(Property{0x4D, PropertyType::FETCH, false, std::monostate{}});
   properties.properties.push_back(Property{0x54, PropertyType::FETCH, false, std::monostate{}});
-  packet.parameters = properties;
+  packet.payload = properties;
 
   run_fill_test(packet, packet_data);
 
@@ -452,9 +452,9 @@ void test_fill_report_properties()
   packet.physicalSource = 0x4EF1;
   packet.senderType = SenderType::SHADE;
   packet.type = PacketType::REPORT_PROPERTIES;
-  PropertiesParameters properties;
+  PropertiesPayload properties;
   properties.properties.push_back(Property{0x50, PropertyType::VALUE, true, (uint16_t)0x0140});
-  packet.parameters = properties;
+  packet.payload = properties;
   packet.rollingCode1 = 0xE0;
   packet.rollingCode2 = 0x1A;
   packet.repeated = false;

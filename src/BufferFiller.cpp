@@ -77,64 +77,64 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       buffer[dataOffset + 2] = 0x00;
       break;
     case PacketType::REPORT_PROPERTIES: {
-      if (!std::holds_alternative<PropertiesParameters>(packet->parameters)) {
+      if (!std::holds_alternative<PropertiesPayload>(packet->payload)) {
         return false;
       }
-      PropertiesParameters parameters = std::get<PropertiesParameters>(packet->parameters);
-      setPacketSize(buffer, dataOffset, calculateTotalPropertiesSize(parameters));
+      PropertiesPayload payload = std::get<PropertiesPayload>(packet->payload);
+      setPacketSize(buffer, dataOffset, calculateTotalPropertiesSize(payload));
       buffer[dataOffset + 0] = 0x21;
       buffer[dataOffset + 1] = 0x5A;
-      setPropertiesData(buffer, dataOffset + 2, parameters);
+      setPropertiesData(buffer, dataOffset + 2, payload);
       break;
     }
     case PacketType::GET_PROPERTIES:
     case PacketType::SET_PROPERTIES: {
-      if (!std::holds_alternative<PropertiesParameters>(packet->parameters)) {
+      if (!std::holds_alternative<PropertiesPayload>(packet->payload)) {
         return false;
       }
-      PropertiesParameters parameters = std::get<PropertiesParameters>(packet->parameters);
-      setPacketSize(buffer, dataOffset, calculateTotalPropertiesSize(parameters));
+      PropertiesPayload payload = std::get<PropertiesPayload>(packet->payload);
+      setPacketSize(buffer, dataOffset, calculateTotalPropertiesSize(payload));
       buffer[dataOffset + 0] = 0x3F;
       buffer[dataOffset + 1] = 0x5A;
-      setPropertiesData(buffer, dataOffset + 2, parameters);
+      setPropertiesData(buffer, dataOffset + 2, payload);
       break;
     }
     case PacketType::ACTIVATE_SCENE:
     case PacketType::STORE_SCENE: {
-      if (!std::holds_alternative<SceneParameters>(packet->parameters)) {
+      if (!std::holds_alternative<ScenePayload>(packet->payload)) {
         return false;
       }
-      SceneParameters parameters = std::get<SceneParameters>(packet->parameters);
+      ScenePayload payload = std::get<ScenePayload>(packet->payload);
       setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x53;
       buffer[dataOffset + 1] = (packet->type == PacketType::ACTIVATE_SCENE) ? 0x47 : 0x43;
-      buffer[dataOffset + 2] = parameters.sceneID;
+      buffer[dataOffset + 2] = payload.sceneID;
       break;
     }
     case PacketType::GET_FIRMWARE: {
-      if (!std::holds_alternative<FirmwareParameters>(packet->parameters)) {
+      if (!std::holds_alternative<FirmwarePayload>(packet->payload)) {
         return false;
       }
-      FirmwareParameters parameters = std::get<FirmwareParameters>(packet->parameters);
+      FirmwarePayload payload = std::get<FirmwarePayload>(packet->payload);
       setPacketSize(buffer, dataOffset, 3);
       buffer[dataOffset + 0] = 0x3F;
       buffer[dataOffset + 1] = 0x46;
-      buffer[dataOffset + 2] = static_cast<uint8_t>(parameters.target);
+      buffer[dataOffset + 2] = static_cast<uint8_t>(payload.target);
       break;
     }
     case PacketType::REPORT_FIRMWARE: {
-      if (!std::holds_alternative<FirmwareParameters>(packet->parameters)) {
+      if (!std::holds_alternative<FirmwarePayload>(packet->payload)) {
         return false;
       }
-      FirmwareParameters parameters = std::get<FirmwareParameters>(packet->parameters);
+      FirmwarePayload payload = std::get<FirmwarePayload>(packet->payload);
       setPacketSize(buffer, dataOffset, 7);
       buffer[dataOffset + 0] = 0x21;
       buffer[dataOffset + 1] = 0x46;
-      buffer[dataOffset + 2] = static_cast<uint8_t>(parameters.target);
-      buffer[dataOffset + 3] = (uint8_t)(parameters.build & 0x00FF);
-      buffer[dataOffset + 4] = (uint8_t)((parameters.build & 0xFF00) >> 8);
-      buffer[dataOffset + 5] = parameters.minor;
-      buffer[dataOffset + 6] = parameters.major;
+      buffer[dataOffset + 2] = static_cast<uint8_t>(payload.target);
+      buffer[dataOffset + 3] = (uint8_t)(payload.build & 0x00FF);
+      buffer[dataOffset + 4] = (uint8_t)((payload.build & 0xFF00) >> 8);
+      buffer[dataOffset + 5] = payload.minor;
+      buffer[dataOffset + 6] = payload.major;
       break;
     }
     default:
@@ -148,9 +148,9 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   return true;
 }
 
-void BufferFiller::setPropertiesData(uint8_t *buffer, uint8_t offset, const PropertiesParameters& parameters) {
-  for (size_t i = 0; i < parameters.properties.size(); i++) {
-    Property property = parameters.properties[i];
+void BufferFiller::setPropertiesData(uint8_t *buffer, uint8_t offset, const PropertiesPayload& payload) {
+  for (size_t i = 0; i < payload.properties.size(); i++) {
+    Property property = payload.properties[i];
     uint8_t propertySize = calculatePropertySize(property);
     buffer[offset] = propertySize - 1; // Minus 1 because the length byte isn't counted
     switch(property.type) {
@@ -241,10 +241,10 @@ void BufferFiller::calculateCRC(uint8_t *buffer) { // must be called after the b
   buffer[length + 3] = checksum2; // Checksum
 }
 
-uint8_t BufferFiller::calculateTotalPropertiesSize(const PropertiesParameters& parameters) {
+uint8_t BufferFiller::calculateTotalPropertiesSize(const PropertiesPayload& payload) {
   uint8_t totalSize = 2;
-  for (size_t i = 0; i < parameters.properties.size(); i++) {
-    Property property = parameters.properties[i];
+  for (size_t i = 0; i < payload.properties.size(); i++) {
+    Property property = payload.properties[i];
     totalSize += calculatePropertySize(property);
   }
   return totalSize;

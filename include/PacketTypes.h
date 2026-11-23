@@ -28,16 +28,16 @@ enum class FirmwareTarget : uint8_t {
   MOTOR_CONTROLLER = 0x43  // ASCII 'C' (Motor controller firmware)
 };
 
-struct FirmwareParameters {
+struct FirmwarePayload {
   FirmwareTarget target{FirmwareTarget::BLIND_CONTROLLER};
   uint8_t major{0};
   uint8_t minor{0};
   uint16_t build{0};
 
-  bool operator==(const FirmwareParameters& o) const {
+  bool operator==(const FirmwarePayload& o) const {
     return target == o.target && major == o.major && minor == o.minor && build == o.build;
   }
-  bool operator!=(const FirmwareParameters& o) const { return !(*this == o); }
+  bool operator!=(const FirmwarePayload& o) const { return !(*this == o); }
 
   void getAscii(char dest[5]) const {
     dest[0] = static_cast<char>(build & 0xFF);
@@ -81,24 +81,24 @@ struct Property {
   bool operator!=(const Property& o) const { return !(*this == o); }
 };
 
-struct PropertiesParameters {
+struct PropertiesPayload {
   std::vector<Property> properties;
 
-  bool operator==(const PropertiesParameters& o) const { return properties == o.properties; }
-  bool operator!=(const PropertiesParameters& o) const { return !(*this == o); }
+  bool operator==(const PropertiesPayload& o) const { return properties == o.properties; }
+  bool operator!=(const PropertiesPayload& o) const { return !(*this == o); }
 };
 
-struct SceneParameters {
+struct ScenePayload {
   uint8_t sceneID;
 
-  bool operator==(const SceneParameters& o) const { return sceneID == o.sceneID; }
-  bool operator!=(const SceneParameters& o) const { return !(*this == o); }
+  bool operator==(const ScenePayload& o) const { return sceneID == o.sceneID; }
+  bool operator!=(const ScenePayload& o) const { return !(*this == o); }
 };
 
-using ActivateSceneParameters = SceneParameters;
-using StoreSceneParameters = SceneParameters;
+using ActivateScenePayload = ScenePayload;
+using StoreScenePayload = ScenePayload;
 
-using PacketParameters = std::variant<std::monostate, PropertiesParameters, SceneParameters, FirmwareParameters>;
+using PacketPayload = std::variant<std::monostate, PropertiesPayload, ScenePayload, FirmwarePayload>;
 
 struct BroadcastHeader {
   uint16_t source;
@@ -133,7 +133,7 @@ using PacketHeader = std::variant<BroadcastHeader, UnicastHeader, GroupsHeader>;
 struct Packet {
   PacketHeader header;  
   PacketType type;
-  PacketParameters parameters;
+  PacketPayload payload;
   uint8_t rollingCode1;
   uint8_t rollingCode2;
   uint16_t physicalSource = 0;
@@ -144,7 +144,7 @@ struct Packet {
     return rollingCode2 == other.rollingCode2 &&
            type == other.type &&
            header == other.header &&
-           parameters == other.parameters;
+           payload == other.payload;
   }
 };
 
