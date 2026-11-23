@@ -19,7 +19,7 @@ bool RFPowerView::begin() {
     packetReceiver.setBufferCallback([this](const uint8_t* buffer) { this->processBuffer(buffer); });
     packetReceiver.setInvalidBufferCallback([this](const uint8_t* buffer) { this->processInvalidBuffer(buffer); });
 
-    pinMode(irqPin, INPUT);
+    pinMode(irqPin, INPUT_PULLUP);
 
     attachInterrupt(digitalPinToInterrupt(irqPin), std::bind(&RFPowerView::interruptHandler, this), FALLING);
 
@@ -37,6 +37,9 @@ bool RFPowerView::begin() {
 }
 
 void RFPowerView::loop() {
+    if (digitalRead(irqPin) == LOW) {
+        interruptHandler();
+    }
     packetReceiver.loop();
 }
 
@@ -44,6 +47,8 @@ void RFPowerView::startListening() {
     radio.openReadingPipe(0, rfID);
 
     radio.startListening();
+
+    interruptHandler(); // Clear any pending power-on interrupt flags
     
     interrupts();
 }
