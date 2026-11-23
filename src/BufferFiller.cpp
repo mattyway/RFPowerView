@@ -110,6 +110,32 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       buffer[dataOffset + 2] = parameters.sceneID;
       break;
     }
+    case PacketType::GET_FIRMWARE: {
+      if (!std::holds_alternative<FirmwareParameters>(packet->parameters)) {
+        return false;
+      }
+      FirmwareParameters parameters = std::get<FirmwareParameters>(packet->parameters);
+      setPacketSize(buffer, dataOffset, 3);
+      buffer[dataOffset + 0] = 0x3F;
+      buffer[dataOffset + 1] = 0x46;
+      buffer[dataOffset + 2] = static_cast<uint8_t>(parameters.target);
+      break;
+    }
+    case PacketType::REPORT_FIRMWARE: {
+      if (!std::holds_alternative<FirmwareParameters>(packet->parameters)) {
+        return false;
+      }
+      FirmwareParameters parameters = std::get<FirmwareParameters>(packet->parameters);
+      setPacketSize(buffer, dataOffset, 7);
+      buffer[dataOffset + 0] = 0x21;
+      buffer[dataOffset + 1] = 0x46;
+      buffer[dataOffset + 2] = static_cast<uint8_t>(parameters.target);
+      buffer[dataOffset + 3] = (uint8_t)(parameters.build & 0x00FF);
+      buffer[dataOffset + 4] = (uint8_t)((parameters.build & 0xFF00) >> 8);
+      buffer[dataOffset + 5] = parameters.minor;
+      buffer[dataOffset + 6] = parameters.major;
+      break;
+    }
     default:
       return false;
   }

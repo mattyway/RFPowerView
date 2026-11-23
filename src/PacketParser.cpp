@@ -68,6 +68,25 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     } else if (buffer[dataOffset + 0] == 0x52 && buffer[dataOffset + 1] == 0x48) {
         packet.type = PacketType::MOVE_TO_SAVED_POSITION;
         packet.parameters = std::monostate{};
+    } else if (buffer[dataOffset + 0] == 0x3F && buffer[dataOffset + 1] == 0x46) {
+        packet.type = PacketType::GET_FIRMWARE;
+        FirmwareParameters fw{};
+        fw.target = static_cast<FirmwareTarget>(buffer[dataOffset + 2]);
+        packet.parameters = fw;
+    } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x46) {
+        packet.type = PacketType::REPORT_FIRMWARE;
+        FirmwareParameters fw{};
+        fw.target = static_cast<FirmwareTarget>(buffer[dataOffset + 2]);
+        if (buffer[1] >= (dataOffset - 2 + 7)) { // Ensure at least 4 payload data bytes
+            uint8_t b0 = buffer[dataOffset + 3];
+            uint8_t b1 = buffer[dataOffset + 4];
+            uint8_t b2 = buffer[dataOffset + 5];
+            uint8_t b3 = buffer[dataOffset + 6];
+            fw.build = (uint16_t)(b1 << 8 | b0);
+            fw.minor = b2;
+            fw.major = b3;
+        }
+        packet.parameters = fw;
     } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x5A) { 
         packet.type = PacketType::FIELDS;
         std::vector<Field> fields;

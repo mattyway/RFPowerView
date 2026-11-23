@@ -17,7 +17,40 @@ enum class PacketType {
   FIELD_COMMAND,
   ACTIVATE_SCENE,
   STORE_SCENE,
+  GET_FIRMWARE,
+  REPORT_FIRMWARE,
   UNKNOWN
+};
+
+enum class FirmwareTarget : uint8_t {
+  BLIND_CONTROLLER = 0x4E, // ASCII 'N' (Main controller firmware)
+  MOTOR_CONTROLLER = 0x43  // ASCII 'C' (Motor controller firmware)
+};
+
+struct FirmwareParameters {
+  FirmwareTarget target{FirmwareTarget::BLIND_CONTROLLER};
+  uint8_t major{0};
+  uint8_t minor{0};
+  uint16_t build{0};
+
+  bool operator==(const FirmwareParameters& o) const {
+    return target == o.target && major == o.major && minor == o.minor && build == o.build;
+  }
+  bool operator!=(const FirmwareParameters& o) const { return !(*this == o); }
+
+  void getAscii(char dest[5]) const {
+    dest[0] = static_cast<char>(build & 0xFF);
+    dest[1] = static_cast<char>((build >> 8) & 0xFF);
+    dest[2] = static_cast<char>(minor);
+    dest[3] = static_cast<char>(major);
+    dest[4] = '\0';
+  }
+
+  void setAscii(const char src[4]) {
+    build = static_cast<uint16_t>(static_cast<uint8_t>(src[0]) | (static_cast<uint8_t>(src[1]) << 8));
+    minor = static_cast<uint8_t>(src[2]);
+    major = static_cast<uint8_t>(src[3]);
+  }
 };
 
 enum class FieldType {
@@ -64,7 +97,7 @@ struct SceneParameters {
 using ActivateSceneParameters = SceneParameters;
 using StoreSceneParameters = SceneParameters;
 
-using PacketParameters = std::variant<std::monostate, FieldsParameters, SceneParameters>;
+using PacketParameters = std::variant<std::monostate, FieldsParameters, SceneParameters, FirmwareParameters>;
 
 struct BroadcastHeader {
   uint16_t source;

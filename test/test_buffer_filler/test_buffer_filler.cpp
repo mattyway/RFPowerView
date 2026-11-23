@@ -349,6 +349,100 @@ void test_fill_sender_type()
   TEST_ASSERT_EQUAL_HEX8(0x10, packet_data[2]);
 }
 
+void test_fill_firmware_query()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  packet.header = UnicastHeader{0x0000, 0x4EF1};
+  packet.type = PacketType::GET_FIRMWARE;
+  packet.parameters = FirmwareParameters{FirmwareTarget::BLIND_CONTROLLER};
+  packet.rollingCode1 = 0xC1;
+  packet.rollingCode2 = 0x6A;
+  packet.repeated = false;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C0110005C1FFFF000086056A4EF100003F464EBA02");
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 21);
+  delete[] expected_data;
+}
+
+void test_fill_firmware_report_blind()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  packet.header = UnicastHeader{0x4EF1, 0x0000};
+  packet.physicalSource = 0x4EF1;
+  packet.senderType = SenderType::BLIND_AT_REST;
+  packet.type = PacketType::REPORT_FIRMWARE;
+  FirmwareParameters fw;
+  fw.target = FirmwareTarget::BLIND_CONTROLLER;
+  fw.major = 1;
+  fw.minor = 8;
+  fw.build = 1944;
+  packet.parameters = fw;
+  packet.rollingCode1 = 0x94;
+  packet.rollingCode2 = 0xAB;
+  packet.repeated = false;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C015100594FFFF4EF18605AB00004EF121464E980708018DE7");
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 25);
+  delete[] expected_data;
+}
+
+void test_fill_firmware_report_motor()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  packet.header = UnicastHeader{0x4EF1, 0x0000};
+  packet.physicalSource = 0x4EF1;
+  packet.senderType = SenderType::BLIND_AT_REST;
+  packet.type = PacketType::REPORT_FIRMWARE;
+  FirmwareParameters fw;
+  fw.target = FirmwareTarget::MOTOR_CONTROLLER;
+  fw.setAscii("2.00");
+  TEST_ASSERT_EQUAL_UINT8(48, fw.major);
+  TEST_ASSERT_EQUAL_UINT8(48, fw.minor);
+  TEST_ASSERT_EQUAL_UINT16(11826, fw.build);
+  packet.parameters = fw;
+  packet.rollingCode1 = 0xA0;
+  packet.rollingCode2 = 0xB7;
+  packet.repeated = false;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C0151005A0FFFF4EF18605B700004EF1214643322E3030EF05");
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 25);
+  delete[] expected_data;
+}
+
+void test_fill_compound_query_with_shade_type()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  packet.header = UnicastHeader{0x0000, 0x4EF1};
+  packet.type = PacketType::FIELD_COMMAND;
+  packet.rollingCode1 = 0xBA;
+  packet.rollingCode2 = 0x63;
+  FieldsParameters fields;
+  fields.fields.push_back(Field{0x50, FieldType::FETCH, false, std::monostate{}});
+  fields.fields.push_back(Field{0x4D, FieldType::FETCH, false, std::monostate{}});
+  fields.fields.push_back(Field{0x54, FieldType::FETCH, false, std::monostate{}});
+  packet.parameters = fields;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C0190005BAFFFF00008605634EF100003F5A023F50023F4D023F546F81");
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 29);
+  delete[] expected_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -365,6 +459,10 @@ int runUnityTests(void)
   RUN_TEST(test_fill_fields_set);
   RUN_TEST(test_fill_repeated_packet);
   RUN_TEST(test_fill_sender_type);
+  RUN_TEST(test_fill_firmware_query);
+  RUN_TEST(test_fill_firmware_report_blind);
+  RUN_TEST(test_fill_firmware_report_motor);
+  RUN_TEST(test_fill_compound_query_with_shade_type);
   return UNITY_END();
 }
 

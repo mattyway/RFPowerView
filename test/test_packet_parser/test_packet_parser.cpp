@@ -415,6 +415,115 @@ void test_parse_sender_type()
   delete[] blind_packet;
 }
 
+void test_parse_blind_firmware_query()
+{
+  // Live packet #51: Hub queries Blind Controller Firmware
+  const uint8_t* packet_data = hex_string_to_array("C0110005C1FFFF000086056A4EF100003F464EBA02");
+  Packet packet;
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::GET_FIRMWARE);
+  TEST_ASSERT_TRUE(std::holds_alternative<UnicastHeader>(packet.header));
+  auto header = std::get<UnicastHeader>(packet.header);
+  TEST_ASSERT_EQUAL_HEX16(0x0000, header.source);
+  TEST_ASSERT_EQUAL_HEX16(0x4EF1, header.destination);
+  TEST_ASSERT_EQUAL_HEX8(0xC1, packet.rollingCode1);
+  TEST_ASSERT_EQUAL_HEX8(0x6A, packet.rollingCode2);
+
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
+  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(fw.target == FirmwareTarget::BLIND_CONTROLLER);
+
+  delete[] packet_data;
+}
+
+void test_parse_blind_firmware_report()
+{
+  // Live packet #182: Blind reports Controller Firmware 1.8.1944
+  const uint8_t* packet_data = hex_string_to_array("C015100594FFFF4EF18605AB00004EF121464E980708018DE7");
+  Packet packet;
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_FIRMWARE);
+  TEST_ASSERT_TRUE(packet.senderType == SenderType::BLIND_AT_REST);
+  TEST_ASSERT_TRUE(std::holds_alternative<UnicastHeader>(packet.header));
+  auto header = std::get<UnicastHeader>(packet.header);
+  TEST_ASSERT_EQUAL_HEX16(0x4EF1, header.source);
+  TEST_ASSERT_EQUAL_HEX16(0x0000, header.destination);
+  TEST_ASSERT_EQUAL_HEX16(0x4EF1, packet.physicalSource);
+  TEST_ASSERT_EQUAL_HEX8(0x94, packet.rollingCode1);
+  TEST_ASSERT_EQUAL_HEX8(0xAB, packet.rollingCode2);
+
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
+  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(fw.target == FirmwareTarget::BLIND_CONTROLLER);
+  TEST_ASSERT_EQUAL_UINT8(1, fw.major);
+  TEST_ASSERT_EQUAL_UINT8(8, fw.minor);
+  TEST_ASSERT_EQUAL_UINT16(1944, fw.build);
+
+  delete[] packet_data;
+}
+
+void test_parse_motor_firmware_query()
+{
+  // Live packet #228: Hub queries Motor Firmware
+  const uint8_t* packet_data = hex_string_to_array("C0110005C7FFFF00008605704EF100003F4643E8E2");
+  Packet packet;
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::GET_FIRMWARE);
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
+  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(fw.target == FirmwareTarget::MOTOR_CONTROLLER);
+
+  delete[] packet_data;
+}
+
+void test_parse_motor_firmware_report()
+{
+  // Live packet #231: Blind reports Motor Firmware 48.48.11826 ("2.00")
+  const uint8_t* packet_data = hex_string_to_array("C0151005A0FFFF4EF18605B700004EF1214643322E3030EF05");
+  Packet packet;
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_FIRMWARE);
+  TEST_ASSERT_TRUE(std::holds_alternative<FirmwareParameters>(packet.parameters));
+  auto fw = std::get<FirmwareParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(fw.target == FirmwareTarget::MOTOR_CONTROLLER);
+  char ascii[5];
+  fw.getAscii(ascii);
+  TEST_ASSERT_EQUAL_STRING("2.00", ascii);
+  TEST_ASSERT_EQUAL_UINT8(48, fw.major);
+  TEST_ASSERT_EQUAL_UINT8(48, fw.minor);
+  TEST_ASSERT_EQUAL_UINT16(11826, fw.build);
+
+  delete[] packet_data;
+}
+
+void test_parse_compound_query_with_shade_type()
+{
+  // Live packet #55: Compound Query (Position + Tilt + Shade Type)
+  const uint8_t* packet_data = hex_string_to_array("C0190005BAFFFF00008605634EF100003F5A023F50023F4D023F546F81");
+  Packet packet;
+  run_parse_test(packet_data, packet);
+
+  TEST_ASSERT_TRUE(packet.type == PacketType::FIELD_COMMAND);
+  TEST_ASSERT_TRUE(std::holds_alternative<FieldsParameters>(packet.parameters));
+  auto params = std::get<FieldsParameters>(packet.parameters);
+  TEST_ASSERT_EQUAL_UINT32(3, params.fields.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x50, params.fields[0].identifier);
+  TEST_ASSERT_TRUE(params.fields[0].type == FieldType::FETCH);
+
+  TEST_ASSERT_EQUAL_HEX8(0x4D, params.fields[1].identifier);
+  TEST_ASSERT_TRUE(params.fields[1].type == FieldType::FETCH);
+
+  TEST_ASSERT_EQUAL_HEX8(0x54, params.fields[2].identifier);
+  TEST_ASSERT_TRUE(params.fields[2].type == FieldType::FETCH);
+
+  delete[] packet_data;
+}
+
 int runUnityTests(void)
 {
   UNITY_BEGIN();
@@ -442,6 +551,11 @@ int runUnityTests(void)
   RUN_TEST(test_is_same_command_different_command);
   RUN_TEST(test_is_same_command_different_destination);
   RUN_TEST(test_parse_sender_type);
+  RUN_TEST(test_parse_blind_firmware_query);
+  RUN_TEST(test_parse_blind_firmware_report);
+  RUN_TEST(test_parse_motor_firmware_query);
+  RUN_TEST(test_parse_motor_firmware_report);
+  RUN_TEST(test_parse_compound_query_with_shade_type);
   return UNITY_END();
 }
 
