@@ -231,7 +231,7 @@ void test_fill_unicast_open()
   delete[] expected_data;
 }
 
-void test_fill_fields_fetch()
+void test_fill_properties_fetch()
 {
   uint8_t packet_data[32];
 
@@ -240,23 +240,23 @@ void test_fill_fields_fetch()
   header.source = 0x0000;
   header.destination = 0x4EF1;
   packet.header = header;
-  packet.type = PacketType::FIELD_COMMAND;
-  auto parameters = FieldsParameters {};
-  auto field1 = Field {};
-  field1.identifier = 0x50;
-  field1.type = FieldType::FETCH;
-  field1.hasValue = false;
-  parameters.fields.push_back(field1);
-  auto field2 = Field {};
-  field2.identifier = 0x4D;
-  field2.type = FieldType::FETCH;
-  field2.hasValue = false;
-  parameters.fields.push_back(field2);
-  auto field3 = Field {};
-  field3.identifier = 0x54;
-  field3.type = FieldType::FETCH;
-  field3.hasValue = false;
-  parameters.fields.push_back(field3);
+  packet.type = PacketType::GET_PROPERTIES;
+  auto parameters = PropertiesParameters {};
+  auto prop1 = Property {};
+  prop1.identifier = 0x50;
+  prop1.type = PropertyType::FETCH;
+  prop1.hasValue = false;
+  parameters.properties.push_back(prop1);
+  auto prop2 = Property {};
+  prop2.identifier = 0x4D;
+  prop2.type = PropertyType::FETCH;
+  prop2.hasValue = false;
+  parameters.properties.push_back(prop2);
+  auto prop3 = Property {};
+  prop3.identifier = 0x54;
+  prop3.type = PropertyType::FETCH;
+  prop3.hasValue = false;
+  parameters.properties.push_back(prop3);
   packet.parameters = parameters;
   packet.rollingCode1 = 0x92;
   packet.rollingCode2 = 0x4E;
@@ -270,7 +270,7 @@ void test_fill_fields_fetch()
   delete[] expected_data;
 }
 
-void test_fill_fields_set()
+void test_fill_properties_set()
 {
   uint8_t packet_data[32];
 
@@ -279,14 +279,14 @@ void test_fill_fields_set()
   header.source = 0x0000;
   header.destination = 0x4EF1;
   packet.header = header;
-  packet.type = PacketType::FIELD_COMMAND;
-  auto parameters = FieldsParameters {};
-  auto field1 = Field {};
-  field1.identifier = 0x50;
-  field1.type = FieldType::SET;
-  field1.hasValue = true;
-  field1.value = (uint16_t)0xFFFF;
-  parameters.fields.push_back(field1);
+  packet.type = PacketType::SET_PROPERTIES;
+  auto parameters = PropertiesParameters {};
+  auto prop1 = Property {};
+  prop1.identifier = 0x50;
+  prop1.type = PropertyType::SET;
+  prop1.hasValue = true;
+  prop1.value = (uint16_t)0xFFFF;
+  parameters.properties.push_back(prop1);
   packet.parameters = parameters;
   packet.rollingCode1 = 0x29;
   packet.rollingCode2 = 0xB9;
@@ -309,11 +309,11 @@ void test_fill_repeated_packet()
   header.source = 0x0000;
   header.destination = 0x4EF1;
   packet.header = header;
-  packet.type = PacketType::FIELD_COMMAND;
-  auto parameters = FieldsParameters {};
-  parameters.fields.push_back(Field{0x50, FieldType::FETCH, false, std::monostate{}});
-  parameters.fields.push_back(Field{0x4D, FieldType::FETCH, false, std::monostate{}});
-  parameters.fields.push_back(Field{0x54, FieldType::FETCH, false, std::monostate{}});
+  packet.type = PacketType::GET_PROPERTIES;
+  auto parameters = PropertiesParameters {};
+  parameters.properties.push_back(Property{0x50, PropertyType::FETCH, false, std::monostate{}});
+  parameters.properties.push_back(Property{0x4D, PropertyType::FETCH, false, std::monostate{}});
+  parameters.properties.push_back(Property{0x54, PropertyType::FETCH, false, std::monostate{}});
   packet.parameters = parameters;
   packet.rollingCode1 = 0x92;
   packet.rollingCode2 = 0x4E;
@@ -427,19 +427,42 @@ void test_fill_compound_query_with_shade_type()
 
   Packet packet;
   packet.header = UnicastHeader{0x0000, 0x4EF1};
-  packet.type = PacketType::FIELD_COMMAND;
+  packet.type = PacketType::GET_PROPERTIES;
   packet.rollingCode1 = 0xBA;
   packet.rollingCode2 = 0x63;
-  FieldsParameters fields;
-  fields.fields.push_back(Field{0x50, FieldType::FETCH, false, std::monostate{}});
-  fields.fields.push_back(Field{0x4D, FieldType::FETCH, false, std::monostate{}});
-  fields.fields.push_back(Field{0x54, FieldType::FETCH, false, std::monostate{}});
-  packet.parameters = fields;
+  PropertiesParameters properties;
+  properties.properties.push_back(Property{0x50, PropertyType::FETCH, false, std::monostate{}});
+  properties.properties.push_back(Property{0x4D, PropertyType::FETCH, false, std::monostate{}});
+  properties.properties.push_back(Property{0x54, PropertyType::FETCH, false, std::monostate{}});
+  packet.parameters = properties;
 
   run_fill_test(packet, packet_data);
 
   const uint8_t* expected_data = hex_string_to_array("C0190005BAFFFF00008605634EF100003F5A023F50023F4D023F546F81");
   TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 29);
+  delete[] expected_data;
+}
+
+void test_fill_report_properties()
+{
+  uint8_t packet_data[32];
+
+  Packet packet;
+  packet.header = UnicastHeader{0x4EF1, 0x0000};
+  packet.physicalSource = 0x4EF1;
+  packet.senderType = SenderType::SHADE;
+  packet.type = PacketType::REPORT_PROPERTIES;
+  PropertiesParameters properties;
+  properties.properties.push_back(Property{0x50, PropertyType::VALUE, true, (uint16_t)0x0140});
+  packet.parameters = properties;
+  packet.rollingCode1 = 0xE0;
+  packet.rollingCode2 = 0x1A;
+  packet.repeated = false;
+
+  run_fill_test(packet, packet_data);
+
+  const uint8_t* expected_data = hex_string_to_array("C0151005E0FFFF4EF186051A00004EF1215A04215040016670");
+  TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_data, packet_data, 25);
   delete[] expected_data;
 }
 
@@ -455,14 +478,15 @@ int runUnityTests(void)
   RUN_TEST(test_fill_unicast_stop);
   RUN_TEST(test_fill_unicast_close);
   RUN_TEST(test_fill_unicast_open);
-  RUN_TEST(test_fill_fields_fetch);
-  RUN_TEST(test_fill_fields_set);
+  RUN_TEST(test_fill_properties_fetch);
+  RUN_TEST(test_fill_properties_set);
   RUN_TEST(test_fill_repeated_packet);
   RUN_TEST(test_fill_sender_type);
   RUN_TEST(test_fill_firmware_query);
   RUN_TEST(test_fill_firmware_report_blind);
   RUN_TEST(test_fill_firmware_report_motor);
   RUN_TEST(test_fill_compound_query_with_shade_type);
+  RUN_TEST(test_fill_report_properties);
   return UNITY_END();
 }
 

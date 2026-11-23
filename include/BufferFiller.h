@@ -24,11 +24,11 @@ private:
     void setRepeatFlag(uint8_t *buffer, bool repeated);
     void setRollingCodes(uint8_t *buffer, uint8_t rollingCode1, uint8_t rollingCode2);
     void setProtocolVersion(uint8_t *buffer, uint8_t);
-    void setFieldsData(uint8_t *buffer, uint8_t offset, const FieldsParameters& parameters);
+    void setPropertiesData(uint8_t *buffer, uint8_t offset, const PropertiesParameters& parameters);
     void calculateCRC(uint8_t *buffer);
     void incrementRollingCodes();
-    uint8_t calculateTotalFieldSize(const FieldsParameters& parameters);
-    uint8_t calculateFieldSize(const Field& field);
+    uint8_t calculateTotalPropertiesSize(const PropertiesParameters& parameters);
+    uint8_t calculatePropertySize(const Property& property);
 };
 
 #endif // BUFFERFILLER_H

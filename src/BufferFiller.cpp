@@ -76,26 +76,27 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
       buffer[dataOffset + 1] = 0x48;
       buffer[dataOffset + 2] = 0x00;
       break;
-    case PacketType::FIELDS: {
-      if (!std::holds_alternative<FieldsParameters>(packet->parameters)) {
+    case PacketType::REPORT_PROPERTIES: {
+      if (!std::holds_alternative<PropertiesParameters>(packet->parameters)) {
         return false;
       }
-      FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
-      setPacketSize(buffer, dataOffset, calculateTotalFieldSize(parameters));
+      PropertiesParameters parameters = std::get<PropertiesParameters>(packet->parameters);
+      setPacketSize(buffer, dataOffset, calculateTotalPropertiesSize(parameters));
       buffer[dataOffset + 0] = 0x21;
       buffer[dataOffset + 1] = 0x5A;
-      setFieldsData(buffer, dataOffset + 2, parameters);
+      setPropertiesData(buffer, dataOffset + 2, parameters);
       break;
     }
-    case PacketType::FIELD_COMMAND: {
-      if (!std::holds_alternative<FieldsParameters>(packet->parameters)) {
+    case PacketType::GET_PROPERTIES:
+    case PacketType::SET_PROPERTIES: {
+      if (!std::holds_alternative<PropertiesParameters>(packet->parameters)) {
         return false;
       }
-      FieldsParameters parameters = std::get<FieldsParameters>(packet->parameters);
-      setPacketSize(buffer, dataOffset, calculateTotalFieldSize(parameters));
+      PropertiesParameters parameters = std::get<PropertiesParameters>(packet->parameters);
+      setPacketSize(buffer, dataOffset, calculateTotalPropertiesSize(parameters));
       buffer[dataOffset + 0] = 0x3F;
       buffer[dataOffset + 1] = 0x5A;
-      setFieldsData(buffer, dataOffset + 2, parameters);
+      setPropertiesData(buffer, dataOffset + 2, parameters);
       break;
     }
     case PacketType::ACTIVATE_SCENE:
@@ -147,36 +148,36 @@ bool BufferFiller::fill(uint8_t *buffer, const Packet* packet) {
   return true;
 }
 
-void BufferFiller::setFieldsData(uint8_t *buffer, uint8_t offset, const FieldsParameters& parameters) {
-  for (size_t i = 0; i < parameters.fields.size(); i++) {
-    Field field = parameters.fields[i];
-    uint8_t fieldSize = calculateFieldSize(field);
-    buffer[offset] = fieldSize - 1; // Minus 1 because the length byte isn't counted
-    switch(field.type) {
-      case FieldType::SET:
+void BufferFiller::setPropertiesData(uint8_t *buffer, uint8_t offset, const PropertiesParameters& parameters) {
+  for (size_t i = 0; i < parameters.properties.size(); i++) {
+    Property property = parameters.properties[i];
+    uint8_t propertySize = calculatePropertySize(property);
+    buffer[offset] = propertySize - 1; // Minus 1 because the length byte isn't counted
+    switch(property.type) {
+      case PropertyType::SET:
         buffer[offset + 1] = 0x40;
         break;
-      case FieldType::FETCH:
+      case PropertyType::FETCH:
         buffer[offset + 1] = 0x3F;
         break;
-      case FieldType::VALUE:
+      case PropertyType::VALUE:
         buffer[offset + 1] = 0x21;
         break;
       default:
         // TODO: Return false?
         break;
     }
-    buffer[offset + 2] = field.identifier;
-    if(field.hasValue) {
-      if (std::holds_alternative<uint8_t>(field.value)) {
-        buffer[offset + 3] = std::get<uint8_t>(field.value);
-      } else if (std::holds_alternative<uint16_t>(field.value)) {
-        uint16_t value = std::get<uint16_t>(field.value);
+    buffer[offset + 2] = property.identifier;
+    if(property.hasValue) {
+      if (std::holds_alternative<uint8_t>(property.value)) {
+        buffer[offset + 3] = std::get<uint8_t>(property.value);
+      } else if (std::holds_alternative<uint16_t>(property.value)) {
+        uint16_t value = std::get<uint16_t>(property.value);
         buffer[offset + 3] = (uint8_t)(value & 0x00FF);
         buffer[offset + 4] = (uint8_t)((value & 0xFF00) >> 8);
       }
     }
-    offset += fieldSize;
+    offset += propertySize;
   }
 }
 
@@ -240,23 +241,23 @@ void BufferFiller::calculateCRC(uint8_t *buffer) { // must be called after the b
   buffer[length + 3] = checksum2; // Checksum
 }
 
-uint8_t BufferFiller::calculateTotalFieldSize(const FieldsParameters& parameters) {
+uint8_t BufferFiller::calculateTotalPropertiesSize(const PropertiesParameters& parameters) {
   uint8_t totalSize = 2;
-  for (size_t i = 0; i < parameters.fields.size(); i++) {
-    Field field = parameters.fields[i];
-    totalSize += calculateFieldSize(field);
+  for (size_t i = 0; i < parameters.properties.size(); i++) {
+    Property property = parameters.properties[i];
+    totalSize += calculatePropertySize(property);
   }
   return totalSize;
 }
 
-uint8_t BufferFiller::calculateFieldSize(const Field& field) {
-  uint8_t fieldSize = 3; // Length byte + field type byte + identifier byte
-  if (field.hasValue) {
-    if (std::holds_alternative<uint8_t>(field.value)) {
-      fieldSize += 1;
-    } else if (std::holds_alternative<uint16_t>(field.value)) {
-      fieldSize += 2;
+uint8_t BufferFiller::calculatePropertySize(const Property& property) {
+  uint8_t propertySize = 3; // Length byte + property type byte + identifier byte
+  if (property.hasValue) {
+    if (std::holds_alternative<uint8_t>(property.value)) {
+      propertySize += 1;
+    } else if (std::holds_alternative<uint16_t>(property.value)) {
+      propertySize += 2;
     }
   }
-  return fieldSize;
+  return propertySize;
 }

@@ -198,7 +198,7 @@ void test_parse_store_scene()
   delete[] packet_data;
 }
 
-void test_parse_fields()
+void test_parse_properties()
 {
   const uint8_t* packet_data = hex_string_to_array("C019000592FFFF72CB85054E4EF100003F5A023F50023F4D023F54C9F3");
 
@@ -206,23 +206,25 @@ void test_parse_fields()
 
   run_parse_test(packet_data, packet);
 
-  auto parameters = std::get<FieldsParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(packet.type == PacketType::GET_PROPERTIES);
 
-  TEST_ASSERT_EQUAL_INT(3, parameters.fields.size());
+  auto parameters = std::get<PropertiesParameters>(packet.parameters);
 
-  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.fields[0].identifier);
-  TEST_ASSERT_FALSE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should not have a value.");
+  TEST_ASSERT_EQUAL_INT(3, parameters.properties.size());
 
-  TEST_ASSERT_EQUAL_HEX8(0x4D, parameters.fields[1].identifier);
-  TEST_ASSERT_FALSE_MESSAGE(parameters.fields[1].hasValue, "Field 1 should not have a value.");
+  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.properties[0].identifier);
+  TEST_ASSERT_FALSE_MESSAGE(parameters.properties[0].hasValue, "Property 0 should not have a value.");
 
-  TEST_ASSERT_EQUAL_HEX8(0x54, parameters.fields[2].identifier);
-  TEST_ASSERT_FALSE_MESSAGE(parameters.fields[2].hasValue, "Field 2 should not have a value.");
+  TEST_ASSERT_EQUAL_HEX8(0x4D, parameters.properties[1].identifier);
+  TEST_ASSERT_FALSE_MESSAGE(parameters.properties[1].hasValue, "Property 1 should not have a value.");
+
+  TEST_ASSERT_EQUAL_HEX8(0x54, parameters.properties[2].identifier);
+  TEST_ASSERT_FALSE_MESSAGE(parameters.properties[2].hasValue, "Property 2 should not have a value.");
 
   delete[] packet_data;
 }
 
-void test_parse_fields_data_uint16()
+void test_parse_properties_data_uint16()
 {
   const uint8_t* packet_data = hex_string_to_array("C0151005E0FFFF4EF186051A00004EF1215A04215040016670");
 
@@ -230,18 +232,20 @@ void test_parse_fields_data_uint16()
 
   run_parse_test(packet_data, packet);
 
-  auto parameters = std::get<FieldsParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_PROPERTIES);
 
-  TEST_ASSERT_EQUAL_INT(1, parameters.fields.size());
+  auto parameters = std::get<PropertiesParameters>(packet.parameters);
 
-  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.fields[0].identifier);
-  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should have a value.");
-  TEST_ASSERT_EQUAL_HEX16(0x0140, std::get<uint16_t>(parameters.fields[0].value));
+  TEST_ASSERT_EQUAL_INT(1, parameters.properties.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.properties[0].identifier);
+  TEST_ASSERT_TRUE_MESSAGE(parameters.properties[0].hasValue, "Property 0 should have a value.");
+  TEST_ASSERT_EQUAL_HEX16(0x0140, std::get<uint16_t>(parameters.properties[0].value));
 
   delete[] packet_data;
 }
 
-void test_parse_fields_data_uint8()
+void test_parse_properties_data_uint8()
 {
   const uint8_t* packet_data = hex_string_to_array("C014100558FFFF4EF18605C100004EF1215A0321429DEC23");
 
@@ -249,18 +253,20 @@ void test_parse_fields_data_uint8()
 
   run_parse_test(packet_data, packet);
 
-  auto parameters = std::get<FieldsParameters>(packet.parameters);
+  TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_PROPERTIES);
 
-  TEST_ASSERT_EQUAL_INT(1, parameters.fields.size());
+  auto parameters = std::get<PropertiesParameters>(packet.parameters);
 
-  TEST_ASSERT_EQUAL_HEX8(0x42, parameters.fields[0].identifier);
-  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should have a value.");
-  TEST_ASSERT_EQUAL_HEX8(0x9D, std::get<uint8_t>(parameters.fields[0].value));
+  TEST_ASSERT_EQUAL_INT(1, parameters.properties.size());
+
+  TEST_ASSERT_EQUAL_HEX8(0x42, parameters.properties[0].identifier);
+  TEST_ASSERT_TRUE_MESSAGE(parameters.properties[0].hasValue, "Property 0 should have a value.");
+  TEST_ASSERT_EQUAL_HEX8(0x9D, std::get<uint8_t>(parameters.properties[0].value));
 
   delete[] packet_data;
 }
 
-void test_parse_fields_multiple_groups()
+void test_parse_properties_multiple_groups()
 {
   const uint8_t* packet_data = hex_string_to_array("C01600056CFFFF369E86063C040500369E3F5A04405040012FCC");
 
@@ -268,16 +274,16 @@ void test_parse_fields_multiple_groups()
 
   run_parse_test(packet_data, packet);
 
-  TEST_ASSERT_TRUE(packet.type == PacketType::FIELD_COMMAND);
+  TEST_ASSERT_TRUE(packet.type == PacketType::SET_PROPERTIES);
 
-  auto parameters = std::get<FieldsParameters>(packet.parameters);
+  auto parameters = std::get<PropertiesParameters>(packet.parameters);
 
-  TEST_ASSERT_EQUAL_INT(1, parameters.fields.size());
+  TEST_ASSERT_EQUAL_INT(1, parameters.properties.size());
 
-  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.fields[0].identifier);
-  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].type == FieldType::SET, "Field 0 should be a set field.");
-  TEST_ASSERT_TRUE_MESSAGE(parameters.fields[0].hasValue, "Field 0 should have a value.");
-  TEST_ASSERT_EQUAL_HEX16(0x0140, std::get<uint16_t>(parameters.fields[0].value));
+  TEST_ASSERT_EQUAL_HEX8(0x50, parameters.properties[0].identifier);
+  TEST_ASSERT_TRUE_MESSAGE(parameters.properties[0].type == PropertyType::SET, "Property 0 should be a set property.");
+  TEST_ASSERT_TRUE_MESSAGE(parameters.properties[0].hasValue, "Property 0 should have a value.");
+  TEST_ASSERT_EQUAL_HEX16(0x0140, std::get<uint16_t>(parameters.properties[0].value));
 
   delete[] packet_data;
 }
@@ -507,19 +513,19 @@ void test_parse_compound_query_with_shade_type()
   Packet packet;
   run_parse_test(packet_data, packet);
 
-  TEST_ASSERT_TRUE(packet.type == PacketType::FIELD_COMMAND);
-  TEST_ASSERT_TRUE(std::holds_alternative<FieldsParameters>(packet.parameters));
-  auto params = std::get<FieldsParameters>(packet.parameters);
-  TEST_ASSERT_EQUAL_UINT32(3, params.fields.size());
+  TEST_ASSERT_TRUE(packet.type == PacketType::GET_PROPERTIES);
+  TEST_ASSERT_TRUE(std::holds_alternative<PropertiesParameters>(packet.parameters));
+  auto params = std::get<PropertiesParameters>(packet.parameters);
+  TEST_ASSERT_EQUAL_UINT32(3, params.properties.size());
 
-  TEST_ASSERT_EQUAL_HEX8(0x50, params.fields[0].identifier);
-  TEST_ASSERT_TRUE(params.fields[0].type == FieldType::FETCH);
+  TEST_ASSERT_EQUAL_HEX8(0x50, params.properties[0].identifier);
+  TEST_ASSERT_TRUE(params.properties[0].type == PropertyType::FETCH);
 
-  TEST_ASSERT_EQUAL_HEX8(0x4D, params.fields[1].identifier);
-  TEST_ASSERT_TRUE(params.fields[1].type == FieldType::FETCH);
+  TEST_ASSERT_EQUAL_HEX8(0x4D, params.properties[1].identifier);
+  TEST_ASSERT_TRUE(params.properties[1].type == PropertyType::FETCH);
 
-  TEST_ASSERT_EQUAL_HEX8(0x54, params.fields[2].identifier);
-  TEST_ASSERT_TRUE(params.fields[2].type == FieldType::FETCH);
+  TEST_ASSERT_EQUAL_HEX8(0x54, params.properties[2].identifier);
+  TEST_ASSERT_TRUE(params.properties[2].type == PropertyType::FETCH);
 
   delete[] packet_data;
 }
@@ -539,10 +545,10 @@ int runUnityTests(void)
   RUN_TEST(test_broadcast_source_address);
   RUN_TEST(test_parse_activate_scene);
   RUN_TEST(test_parse_store_scene);
-  RUN_TEST(test_parse_fields);
-  RUN_TEST(test_parse_fields_data_uint16);
-  RUN_TEST(test_parse_fields_data_uint8);
-  RUN_TEST(test_parse_fields_multiple_groups);
+  RUN_TEST(test_parse_properties);
+  RUN_TEST(test_parse_properties_data_uint16);
+  RUN_TEST(test_parse_properties_data_uint8);
+  RUN_TEST(test_parse_properties_multiple_groups);
   RUN_TEST(test_physical_source_from_repeater);
   RUN_TEST(test_physical_source_from_hub);
   RUN_TEST(test_physical_source_from_remote);

@@ -13,8 +13,9 @@ enum class PacketType {
   OPEN_SLOW,
   CLOSE_SLOW,
   MOVE_TO_SAVED_POSITION,
-  FIELDS,
-  FIELD_COMMAND,
+  REPORT_PROPERTIES,
+  GET_PROPERTIES,
+  SET_PROPERTIES,
   ACTIVATE_SCENE,
   STORE_SCENE,
   GET_FIRMWARE,
@@ -53,7 +54,7 @@ struct FirmwareParameters {
   }
 };
 
-enum class FieldType {
+enum class PropertyType {
   VALUE,
   SET,
   FETCH,
@@ -65,26 +66,26 @@ enum class SenderType : uint8_t {
   SHADE = 0x10,
 };
 
-struct Field {
+struct Property {
   uint8_t identifier;
-  FieldType type;
+  PropertyType type;
   bool hasValue;
   std::variant<std::monostate, uint8_t, uint16_t> value;
 
-  bool operator==(const Field& o) const {
+  bool operator==(const Property& o) const {
     return identifier == o.identifier &&
            type == o.type &&
            hasValue == o.hasValue &&
            value == o.value;
   }
-  bool operator!=(const Field& o) const { return !(*this == o); }
+  bool operator!=(const Property& o) const { return !(*this == o); }
 };
 
-struct FieldsParameters {
-  std::vector<Field> fields;
+struct PropertiesParameters {
+  std::vector<Property> properties;
 
-  bool operator==(const FieldsParameters& o) const { return fields == o.fields; }
-  bool operator!=(const FieldsParameters& o) const { return !(*this == o); }
+  bool operator==(const PropertiesParameters& o) const { return properties == o.properties; }
+  bool operator!=(const PropertiesParameters& o) const { return !(*this == o); }
 };
 
 struct SceneParameters {
@@ -97,7 +98,7 @@ struct SceneParameters {
 using ActivateSceneParameters = SceneParameters;
 using StoreSceneParameters = SceneParameters;
 
-using PacketParameters = std::variant<std::monostate, FieldsParameters, SceneParameters, FirmwareParameters>;
+using PacketParameters = std::variant<std::monostate, PropertiesParameters, SceneParameters, FirmwareParameters>;
 
 struct BroadcastHeader {
   uint16_t source;

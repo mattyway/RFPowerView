@@ -11,7 +11,7 @@ public:
 
     bool parsePacket(const uint8_t *buffer, Packet& packet);
 private:
-    bool parseFields(const uint8_t *buffer, uint8_t offset, std::vector<Field>& fields);
+    bool parseProperties(const uint8_t *buffer, uint8_t offset, std::vector<Property>& properties);
 };
 
 #endif // PACKET_PARSER_H

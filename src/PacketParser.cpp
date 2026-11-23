@@ -88,15 +88,22 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
         }
         packet.parameters = fw;
     } else if (buffer[dataOffset + 0] == 0x21 && buffer[dataOffset + 1] == 0x5A) { 
-        packet.type = PacketType::FIELDS;
-        std::vector<Field> fields;
-        parseFields(buffer, dataOffset + 2, fields);
-        packet.parameters = FieldsParameters{fields};
+        packet.type = PacketType::REPORT_PROPERTIES;
+        std::vector<Property> properties;
+        parseProperties(buffer, dataOffset + 2, properties);
+        packet.parameters = PropertiesParameters{properties};
     } else if (buffer[dataOffset + 0] == 0x3F && buffer[dataOffset + 1] == 0x5A) {
-        packet.type = PacketType::FIELD_COMMAND;
-        std::vector<Field> fields;
-        parseFields(buffer, dataOffset + 2, fields);
-        packet.parameters = FieldsParameters{fields};
+        std::vector<Property> properties;
+        parseProperties(buffer, dataOffset + 2, properties);
+        bool hasSet = false;
+        for (const auto& p : properties) {
+            if (p.type == PropertyType::SET) {
+                hasSet = true;
+                break;
+            }
+        }
+        packet.type = hasSet ? PacketType::SET_PROPERTIES : PacketType::GET_PROPERTIES;
+        packet.parameters = PropertiesParameters{properties};
     } else if (buffer[dataOffset + 0] == 0x53) {
         if (buffer[dataOffset + 1] == 0x47) {
             packet.type = PacketType::ACTIVATE_SCENE;
@@ -117,41 +124,41 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
     return true;
 }
 
-bool PacketParser::parseFields(const uint8_t *buffer, uint8_t offset, std::vector<Field>& fields) {
+bool PacketParser::parseProperties(const uint8_t *buffer, uint8_t offset, std::vector<Property>& properties) {
     uint8_t length = buffer[1] + 2;
 
     while (offset < length) {
-        uint8_t fieldLength = buffer[offset];
-        if (offset + fieldLength >= length) {
-            // Not enough space to parse the field
+        uint8_t propertyLength = buffer[offset];
+        if (offset + propertyLength >= length) {
+            // Not enough space to parse the property
             return false;
         }
-        FieldType type;
+        PropertyType type;
         switch (buffer[offset + 1]) {
             case 0x40:
-                type = FieldType::SET;
+                type = PropertyType::SET;
                 break;
             case 0x3F:
-                type = FieldType::FETCH;
+                type = PropertyType::FETCH;
                 break;
             case 0x21:
-                type = FieldType::VALUE;
+                type = PropertyType::VALUE;
                 break;
             default:
-                type = FieldType::UNKNOWN;
+                type = PropertyType::UNKNOWN;
                 break;
         } 
         uint8_t identifier = buffer[offset + 2];
-        if (fieldLength == 2) {
-            fields.push_back(Field{identifier, type, false, std::monostate{}});
-        } else if (fieldLength == 3) {
+        if (propertyLength == 2) {
+            properties.push_back(Property{identifier, type, false, std::monostate{}});
+        } else if (propertyLength == 3) {
             uint8_t value = buffer[offset + 3];
-            fields.push_back(Field{identifier, type, true, value});
-        } else if (fieldLength == 4) {
+            properties.push_back(Property{identifier, type, true, value});
+        } else if (propertyLength == 4) {
             uint16_t value = (uint16_t)(buffer[offset + 3] | buffer[offset + 4] << 8);
-            fields.push_back(Field{identifier, type, true, value});
+            properties.push_back(Property{identifier, type, true, value});
         }
-        offset += fieldLength + 1;
+        offset += propertyLength + 1;
     }
     return true;
 }
