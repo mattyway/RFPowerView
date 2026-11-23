@@ -342,7 +342,7 @@ void test_fill_sender_type()
   packet.type = PacketType::STOP;
   packet.rollingCode1 = 0x6C;
   packet.rollingCode2 = 0x3C;
-  packet.senderType = SenderType::BLIND_AT_REST;
+  packet.senderType = SenderType::SHADE;
 
   run_fill_test(packet, packet_data);
 
@@ -375,7 +375,7 @@ void test_fill_firmware_report_blind()
   Packet packet;
   packet.header = UnicastHeader{0x4EF1, 0x0000};
   packet.physicalSource = 0x4EF1;
-  packet.senderType = SenderType::BLIND_AT_REST;
+  packet.senderType = SenderType::SHADE;
   packet.type = PacketType::REPORT_FIRMWARE;
   FirmwareParameters fw;
   fw.target = FirmwareTarget::BLIND_CONTROLLER;
@@ -401,7 +401,7 @@ void test_fill_firmware_report_motor()
   Packet packet;
   packet.header = UnicastHeader{0x4EF1, 0x0000};
   packet.physicalSource = 0x4EF1;
-  packet.senderType = SenderType::BLIND_AT_REST;
+  packet.senderType = SenderType::SHADE;
   packet.type = PacketType::REPORT_FIRMWARE;
   FirmwareParameters fw;
   fw.target = FirmwareTarget::MOTOR_CONTROLLER;

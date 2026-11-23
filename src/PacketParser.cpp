@@ -45,7 +45,7 @@ bool PacketParser::parsePacket(const uint8_t *buffer, Packet& packet)
 
     packet.rollingCode1 = buffer[4];
     packet.rollingCode2 = buffer[11];
-    packet.senderType = (buffer[2] == 0x10) ? SenderType::BLIND_AT_REST : SenderType::STANDARD;
+    packet.senderType = (buffer[2] == 0x10) ? SenderType::SHADE : SenderType::CONTROLLER;
 
     packet.physicalSource = (uint16_t)(buffer[7] << 8 | buffer[8]);
     packet.repeated = (buffer[9] == 0x85);

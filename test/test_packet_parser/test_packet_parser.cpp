@@ -406,10 +406,10 @@ void test_parse_sender_type()
 
   Packet packet;
   run_parse_test(remote_packet, packet);
-  TEST_ASSERT_TRUE(packet.senderType == SenderType::STANDARD);
+  TEST_ASSERT_TRUE(packet.senderType == SenderType::CONTROLLER);
 
   run_parse_test(blind_packet, packet);
-  TEST_ASSERT_TRUE(packet.senderType == SenderType::BLIND_AT_REST);
+  TEST_ASSERT_TRUE(packet.senderType == SenderType::SHADE);
 
   delete[] remote_packet;
   delete[] blind_packet;
@@ -445,7 +445,7 @@ void test_parse_blind_firmware_report()
   run_parse_test(packet_data, packet);
 
   TEST_ASSERT_TRUE(packet.type == PacketType::REPORT_FIRMWARE);
-  TEST_ASSERT_TRUE(packet.senderType == SenderType::BLIND_AT_REST);
+  TEST_ASSERT_TRUE(packet.senderType == SenderType::SHADE);
   TEST_ASSERT_TRUE(std::holds_alternative<UnicastHeader>(packet.header));
   auto header = std::get<UnicastHeader>(packet.header);
   TEST_ASSERT_EQUAL_HEX16(0x4EF1, header.source);
